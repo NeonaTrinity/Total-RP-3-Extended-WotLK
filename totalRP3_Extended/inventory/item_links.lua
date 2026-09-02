@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------
 -- Total RP 3 Extended - WotLK custom item chat links
--- Alpha 16 compatibility feature for the 3.3.5 port.
+-- Alpha 18 compatibility feature for the 3.3.5 port.
 --
 -- WoW 3.3.5 rejects unknown |H...|h links in SendChatMessage(). We therefore
 -- send only the clean visible text "[Item Name]" through normal chat. In
@@ -99,20 +99,16 @@ local function makeLocalHyperlink(fullID, sender, version, label)
     );
 end
 
--- Anchor link-click tooltips beside the middle of the screen instead of to the
--- cursor indefinitely like a normal hover tooltip.
-local linkTooltipAnchor = CreateFrame("Frame", "TRP3X_ItemLinkTooltipAnchor", UIParent);
-linkTooltipAnchor:SetSize(1, 1);
-linkTooltipAnchor:SetPoint("CENTER", UIParent, "CENTER", -180, 20);
-
+-- A clicked chat link is not a hover event, so the normal inventory tooltip
+-- watchdog would hide it almost immediately. Pin it at the mouse for ten
+-- seconds; this matches the user's expectation without inventing a second
+-- tooltip implementation just to add a close button.
 local function showLinkTooltip(fullID)
     if not classExists(fullID) then return false; end
     local class = getClass(fullID);
-    showItemTooltip(linkTooltipAnchor, { id = fullID, count = 1 }, class, true, "ANCHOR_RIGHT");
-    if C_Timer and C_Timer.After then
-        C_Timer.After(10, function()
-            if TRP3_ItemTooltip and TRP3_ItemTooltip.ref == linkTooltipAnchor then TRP3_ItemTooltip:Hide(); end
-        end);
+    showItemTooltip(UIParent, { id = fullID, count = 1 }, class, true, "ANCHOR_CURSOR");
+    if TRP3_ItemTooltip then
+        TRP3_ItemTooltip.trp3xPinnedUntil = (GetTime and GetTime() or 0) + 10;
     end
     return true;
 end

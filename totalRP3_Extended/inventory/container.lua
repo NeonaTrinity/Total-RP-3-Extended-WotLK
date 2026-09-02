@@ -994,12 +994,17 @@ function TRP3_API.inventory.initLootFrame()
 
 	-- Tooltip
 	createRefreshOnFrame(TRP3_ItemTooltip, CONTAINER_UPDATE_FREQUENCY, function(self)
+		if self.trp3xPinnedUntil then
+			if (GetTime and GetTime() or 0) < self.trp3xPinnedUntil then return; end
+			self.trp3xPinnedUntil = nil;
+		end
 		if not self.ref or not MouseIsOver(self.ref) then
 			self:Hide();
 		end
 	end);
 	TRP3_ItemTooltip:SetScript("OnHide", function(self)
 		self.ref = nil;
+		self.trp3xPinnedUntil = nil;
 	end);
 
 	-- Inventory button

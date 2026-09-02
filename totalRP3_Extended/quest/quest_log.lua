@@ -110,6 +110,20 @@ local function getCampaignProgression(campaignID)
 	end
 end
 
+
+local function setQuestLogButtonText(fontString, fullText, maxWidth)
+	fullText = tostring(fullText or "");
+	fontString:SetWidth(maxWidth or 190);
+	if fontString.SetWordWrap then fontString:SetWordWrap(false); end
+	fontString:SetText(fullText);
+	local shown = fullText;
+	while #shown > 4 and fontString.GetStringWidth and fontString:GetStringWidth() > (maxWidth or 190) do
+		shown = shown:sub(1, #shown - 1);
+		fontString:SetText(shown .. "...");
+	end
+	if shown ~= fullText then fontString:SetText(shown .. "..."); end
+end
+
 local function decorateCampaignButton(campaignButton, campaignID, noTooltip)
 	local campaignClass = getClass(campaignID);
 	local campaignIcon, campaignName, campaignDescription = getClassDataSafe(campaignClass);
@@ -119,7 +133,7 @@ local function decorateCampaignButton(campaignButton, campaignID, noTooltip)
 	local progress = "%s: %s%%";
 	local current = getQuestLog().currentCampaign == campaignID;
 	campaignButton:Show();
-	campaignButton.name:SetText(campaignName);
+	setQuestLogButtonText(campaignButton.name, campaignName, 190);
 
 	campaignButton.Completed:Hide();
 	local color = "";

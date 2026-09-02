@@ -194,17 +194,23 @@ function editor.init(ToolFrame)
 		tinsert(editor.list.widgetTab, line);
 		line.click:SetScript("OnClick", function(self, button)
 			if button == "RightButton" then
-				if IsControlKeyDown() then
-					removeCondition(self.actionIndex);
-				else
-					removeAction(self.actionIndex);
+				local values = {
+					{loc("CM_ACTIONS")},
+					{loc("CM_EDIT"), "EDIT"},
+					{loc("CA_ACTIONS_COND"), "CONDITION"},
+				};
+				if toolFrame.specificDraft.AC[self.actionIndex] and toolFrame.specificDraft.AC[self.actionIndex].CO then
+					tinsert(values, {loc("CA_ACTIONS_COND_REMOVE"), "REMOVE_CONDITION"});
 				end
+				tinsert(values, {REMOVE, "DELETE"});
+				TRP3_API.ui.listbox.displayDropDown(self, values, function(action)
+					if action == "EDIT" then openAction(self.actionIndex, self);
+					elseif action == "CONDITION" then openActionCondition(self.actionIndex);
+					elseif action == "REMOVE_CONDITION" then removeCondition(self.actionIndex);
+					elseif action == "DELETE" then removeAction(self.actionIndex); end
+				end, 0, true);
 			else
-				if IsControlKeyDown() then
-					openActionCondition(self.actionIndex);
-				else
-					openAction(self.actionIndex, self);
-				end
+				if IsControlKeyDown() then openActionCondition(self.actionIndex); else openAction(self.actionIndex, self); end
 			end
 		end);
 		line.click:SetScript("OnEnter", function(self)

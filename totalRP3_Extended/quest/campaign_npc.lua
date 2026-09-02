@@ -32,12 +32,19 @@ local tooltip = TRP3_NPCTooltip;
 
 local getUnitDataFromGUID = Utils.str.getUnitDataFromGUID;
 
+local function getNPCData(campaignClass, npcID)
+	if not campaignClass or not campaignClass.ND or npcID == nil then return nil; end
+	-- 1.0.7 stores NPC IDs as string keys ("12345"). The WotLK GUID shim
+	-- naturally parses the entry as a number, so accept either representation.
+	return campaignClass.ND[npcID] or campaignClass.ND[tostring(npcID)];
+end
+
 local function onTargetChanged()
 	local unitType, npcID = getUnitDataFromGUID("target");
 	if unitType == "Creature" and npcID then
 		local campaignClass = TRP3_API.quest.getCurrentCampaignClass();
-		if campaignClass and campaignClass.ND and campaignClass.ND[npcID] then
-			local npcData = campaignClass.ND[npcID];
+		if getNPCData(campaignClass, npcID) then
+			local npcData = getNPCData(campaignClass, npcID);
 			if npcData.NA then
 				TargetFrameTextureFrameName:SetText(npcData.NA);
 			end
@@ -68,8 +75,8 @@ local function onMouseOver()
 	local unitType, npcID = getUnitDataFromGUID("mouseover");
 	if unitType == "Creature" and npcID then
 		local campaignClass = TRP3_API.quest.getCurrentCampaignClass();
-		if campaignClass and campaignClass.ND and campaignClass.ND[npcID] then
-			local npcData = campaignClass.ND[npcID];
+		if getNPCData(campaignClass, npcID) then
+			local npcData = getNPCData(campaignClass, npcID);
 			local originalName = UnitName("mouseover");
 			local originalTexts = TRP3_API.ui.tooltip.getGameTooltipTexts(GameTooltip);
 
@@ -154,7 +161,7 @@ function TRP3_API.quest.UnitIsCampaignNPC(unit)
 		local unitType, npcID = getUnitDataFromGUID(unit);
 		if unitType == "Creature" and npcID then
 			local campaignClass = TRP3_API.quest.getCurrentCampaignClass();
-			if campaignClass and campaignClass.ND and campaignClass.ND[npcID] then
+			if getNPCData(campaignClass, npcID) then
 				return true;
 			end
 		end
@@ -166,7 +173,7 @@ function TRP3_API.quest.GetCampaignNPCData(unit)
 	local unitType, npcID = getUnitDataFromGUID(unit);
 	if unitType == "Creature" and npcID then
 		local campaignClass = TRP3_API.quest.getCurrentCampaignClass();
-		if campaignClass and campaignClass.ND then return campaignClass.ND[npcID]; end
+		if campaignClass and campaignClass.ND then return getNPCData(campaignClass, npcID); end
 	end
 	return nil;
 end
@@ -175,14 +182,34 @@ function TRP3_API.quest.GetCampaignNPCName(unit)
 	local unitType, npcID = getUnitDataFromGUID(unit);
 	if unitType == "Creature" and npcID then
 		local campaignClass = TRP3_API.quest.getCurrentCampaignClass();
-		if campaignClass and campaignClass.ND and campaignClass.ND[npcID] then
-			local npcData = campaignClass.ND[npcID];
+		if getNPCData(campaignClass, npcID) then
+			local npcData = getNPCData(campaignClass, npcID);
 			if npcData.NA then
 				return npcData.NA;
 			end
 		end
 	end
 	return nil;
+end
+
+
+-- Wrath fallback: append campaign NPC information directly to the stock
+-- GameTooltip when it is populated. UPDATE_MOUSEOVER_UNIT ordering differs
+-- from later clients and can fire before the tooltip has an owner, which made
+-- the original dedicated TRP3_NPCTooltip invisible on some 3.3.5 builds.
+local function appendCampaignNPCToGameTooltip(self)
+	local _, unit = self:GetUnit();
+	unit = unit or "mouseover";
+	local unitType, npcID = getUnitDataFromGUID(unit);
+	if unitType ~= "Creature" or not npcID then return; end
+	local campaignClass = TRP3_API.quest.getCurrentCampaignClass();
+	local npcData = getNPCData(campaignClass, npcID);
+	if not npcData then return; end
+	if npcData.NA and npcData.NA ~= "" then self:AddLine(npcData.NA, 1, 0.82, 0); end
+	if npcData.DE and strtrim(npcData.DE) ~= "" then
+		self:AddLine(strtrim(npcData.DE), 1, 0.75, 0, true);
+	end
+	self:Show();
 end
 
 --*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -192,6 +219,9 @@ end
 local function init()
 	Utils.event.registerHandler("PLAYER_TARGET_CHANGED", onTargetChanged);
 	Utils.event.registerHandler("UPDATE_MOUSEOVER_UNIT", onMouseOver);
+	if GameTooltip and GameTooltip.HookScript then
+		GameTooltip:HookScript("OnTooltipSetUnit", appendCampaignNPCToGameTooltip);
+	end
 
 	tooltip.TimeSinceLastUpdate = 0;
 	tooltip:SetScript("OnUpdate", onTooltipUpdate);

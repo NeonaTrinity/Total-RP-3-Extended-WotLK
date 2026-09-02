@@ -591,6 +591,17 @@ function exchangeFrame.init()
 			removeItem(index);
 			TRP3_ItemTooltip:Hide();
 		end);
+		slot:RegisterForDrag("LeftButton");
+		slot:SetScript("OnDragStart", function(self)
+			local icon = (self.itemClass and self.itemClass.BA and self.itemClass.BA.IC) or "inv_misc_questionmark";
+			if exchangeFrame.myData and exchangeFrame.myData[tostring(index)] then
+				removeItem(index);
+				if TRP3X_WOTLK and TRP3X_WOTLK.showDragIcon then TRP3X_WOTLK.showDragIcon(icon); end
+			end
+		end);
+		slot:SetScript("OnDragStop", function()
+			if TRP3X_WOTLK and TRP3X_WOTLK.hideDragIcon then TRP3X_WOTLK.hideDragIcon(); end
+		end);
 		slot:SetScript("OnEnter", function(self)
 			TRP3_API.inventory.showItemTooltip(self, self.slotInfo, self.itemClass);
 		end);

@@ -208,7 +208,10 @@ local function openEffectCondition(scriptStep)
 	editor.overlay:SetFrameLevel(editor:GetFrameLevel() + 20);
 	TRP3_ConditionEditor:SetParent(editor);
 	TRP3_ConditionEditor:ClearAllPoints();
-	TRP3_ConditionEditor:SetPoint("CENTER", 0, 0);
+	TRP3_ConditionEditor:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
+	TRP3_ConditionEditor:SetParent(UIParent);
+	TRP3_ConditionEditor:SetFrameStrata("DIALOG");
+	if TRP3_ConditionEditor.SetClampedToScreen then TRP3_ConditionEditor:SetClampedToScreen(true); end
 	TRP3_ConditionEditor:SetFrameLevel(editor.list:GetFrameLevel() + 20);
 	TRP3_ConditionEditor:Show();
 	TRP3_ConditionEditor.load(conditionData);
@@ -777,6 +780,8 @@ editor.init = function(ToolFrame, effectMenu)
 	editor.element.selector.delay:SetScript("OnClick", addDelayElement);
 	editor.element.selector.effect:SetScript("OnClick", displayEffectDropdown);
 
+	if editor.element.SetBackdrop then editor.element:SetBackdrop(nil); end
+	editor.element.close:Hide();
 	editor.element.close:SetScript("OnClick", function()
 		if editor.element.current then editor.element.current:Hide(); end
 		editor.element:Hide();

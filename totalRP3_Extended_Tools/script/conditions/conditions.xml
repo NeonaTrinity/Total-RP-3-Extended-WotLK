@@ -60,7 +60,7 @@
 	</Frame>
 
 	<Frame name="TRP3_ConditionEditor" hidden="true" inherits="TRP3_EditorEffectTemplate" enableMouse="true">
-		<Size x="850" y="450"/>
+		<Size x="790" y="430"/>
 
 		<Layers>
 			<Layer level="OVERLAY">
@@ -140,7 +140,7 @@
 			</Frame>
 			<Slider parentKey="slider" name="$parentSlider" inherits="TRP3_Scrollbar">
 				<Anchors>
-					<Anchor point="RIGHT" relativePoint="RIGHT" x="25" y="0" relativeTo="$parentline1"/>
+					<Anchor point="RIGHT" relativePoint="RIGHT" x="12" y="0" relativeTo="$parentline1"/>
 					<Anchor point="TOP" x="0" y="0" relativeTo="$parentline1"/>
 					<Anchor point="BOTTOM" x="0" y="0" relativeTo="$parentline6"/>
 				</Anchors>
@@ -186,7 +186,7 @@
 				<Frames>
 
 					<Frame parentKey="editor" inherits="TRP3_EditorEffectTemplate" name="$parenteditor">
-						<Size x="750" y="250"/>
+						<Size x="700" y="250"/>
 						<Anchors>
 							<Anchor point="CENTER"/>
 						</Anchors>

@@ -1,3 +1,28 @@
+TRP3 Extended WotLK Alpha 18
+================================
+
+Focus: UI/editor usability restoration.
+
+- Global Extended popup/browser placement chooses a safe side and clamps to screen.
+- Reparented icon/color/image/object browsers are explicitly hidden by the Extended popup manager.
+- Inventory icon browser prefers below the character model and remains screen-clamped.
+- Clicked RP item chat tooltip is pinned at the mouse for 10 seconds.
+- Offered RP trade items can be dragged out of the exchange (same effect as removing the offer).
+- Campaign names are width-limited/ellipsized; quest title presentation widened and gold.
+- Campaign NPC descriptions are also appended directly to the stock GameTooltip on Wrath.
+- Campaign Action rows now have an explicit right-click Edit / Condition / Delete menu.
+- Condition editor/operand overlays are clamped and given explicit close behavior.
+- Battle-pet wording is replaced with Wrath non-combat companion/critter terminology.
+
+Action naming note:
+Original Extended internally calls the Inspect action LOOK. TRP3_Look intentionally calls
+TRP3_API.quest.inspect(); this is the original 1.0.7 naming convention, not the wrong function.
+
+Known remaining focus:
+Campaign/workflow effects and conditions still require live testing one family at a time.
+The original TRP-Anim-DB submodule data is still absent from the supplied 1.0.7 archive.
+
+
 Alpha 17:
 - Removes permanent campaign deletion from Quest Log. Destructive deletion stays in Tools/database management.
 - Widens/spaces database tabs and truncates overflowing labels with ...; hover shows full text.

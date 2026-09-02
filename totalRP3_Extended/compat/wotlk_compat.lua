@@ -6,7 +6,7 @@
 --------------------------------------------------------------------------------
 
 TRP3X_WOTLK = TRP3X_WOTLK or {};
-TRP3X_WOTLK.alpha = "17";
+TRP3X_WOTLK.alpha = "18";
 -- The stock WotLK TRP3 toolbar crashes when an addon registers its first button
 -- because toolbar.lua assumes GetPushedTexture() is non-nil. Keep the public
 -- base addon untouched; Alpha 16 keeps the Extended buttons on a small
@@ -542,13 +542,11 @@ do
                     API.popup.showColorBrowser(function(r, g, b)
                         local openTag = ("{col:%s%s%s}"):format(hexByte(r), hexByte(g), hexByte(b));
                         insertAt(textFrame, cursor, openTag .. "{/col}", string.len(openTag));
+                        if _G.TRP3_ColorBrowser then _G.TRP3_ColorBrowser:Hide(); end
                     end);
                     local browser = _G.TRP3_ColorBrowser;
                     if browser then
-                        browser:SetParent(UIParent);
-                        browser:SetFrameStrata("DIALOG");
-                        browser:ClearAllPoints();
-                        browser:SetPoint("BOTTOM", toolbarFrame or self, "TOP", 0, 8);
+                        TRP3X_WOTLK.positionPopup(browser, {parent = toolbarFrame or self});
                         if _G.TRP3_PopupsFrame then _G.TRP3_PopupsFrame:Hide(); end
                         browser:Show();
                     end
@@ -566,10 +564,7 @@ do
                     end);
                     local browser = _G.TRP3_ImageBrowser;
                     if browser then
-                        browser:SetParent(UIParent);
-                        browser:SetFrameStrata("DIALOG");
-                        browser:ClearAllPoints();
-                        browser:SetPoint("BOTTOM", toolbarFrame or self, "TOP", 0, 8);
+                        TRP3X_WOTLK.positionPopup(browser, {parent = toolbarFrame or self});
                         if _G.TRP3_PopupsFrame then _G.TRP3_PopupsFrame:Hide(); end
                         browser:Show();
                     end
@@ -1092,6 +1087,60 @@ end;
 Model_OnMouseDown = Model_OnMouseDown or function() end;
 Model_OnMouseUp = Model_OnMouseUp or function() end;
 
+
+-- Alpha 18: keep Extended browsers/panels on-screen on low-resolution Wrath
+-- clients. API-11 browsers were designed around TRP3_PopupsFrame; Extended
+-- reparents them to UIParent, so their original anchors and hide behavior are
+-- no longer sufficient.
+function TRP3X_WOTLK.positionPopup(frame, anchor, mode)
+    if not frame then return; end
+    frame:SetParent(UIParent);
+    if frame.SetFrameStrata then frame:SetFrameStrata("DIALOG"); end
+    if frame.SetClampedToScreen then frame:SetClampedToScreen(true); end
+    frame:ClearAllPoints();
+
+    local parent = anchor and anchor.parent;
+    if mode == "inventory-icons" and _G.TRP3_InventoryPageMain and _G.TRP3_InventoryPageMain.Model then
+        parent = _G.TRP3_InventoryPageMain.Model;
+        frame:SetPoint("TOP", parent, "BOTTOM", 0, -8);
+        return;
+    end
+    if not parent or not parent.GetCenter then
+        frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
+        return;
+    end
+
+    local px, py = parent:GetCenter();
+    local ux, uy = UIParent:GetCenter();
+    local uiw, uih = UIParent:GetWidth(), UIParent:GetHeight();
+    px, py, ux, uy = px or ux, py or uy, ux or 0, uy or 0;
+    uiw, uih = uiw or 1024, uih or 768;
+
+    -- Prefer vertical placement near the top/bottom edges, horizontal placement
+    -- through the middle. This mirrors the way modern popovers avoid edges.
+    if py > (uih * 0.62) then
+        frame:SetPoint("TOP", parent, "BOTTOM", 0, -8);
+    elseif py < (uih * 0.38) then
+        frame:SetPoint("BOTTOM", parent, "TOP", 0, 8);
+    elseif px >= ux then
+        frame:SetPoint("RIGHT", parent, "LEFT", -8, 0);
+    else
+        frame:SetPoint("LEFT", parent, "RIGHT", 8, 0);
+    end
+end
+
+function TRP3X_WOTLK.hideExtendedPopups()
+    for _, name in ipairs({"TRP3_IconBrowser", "TRP3_ColorBrowser", "TRP3_ImageBrowser", "TRP3_ObjectBrowser"}) do
+        local frame = _G[name];
+        if frame and frame.Hide then frame:Hide(); end
+    end
+    if API.popup and API.popup.POPUPS then
+        for _, entry in pairs(API.popup.POPUPS) do
+            if entry and entry.frame and entry.frame.Hide then entry.frame:Hide(); end
+        end
+    end
+end
+
 -- ---------------------------------------------------------------------------
 -- Newer dynamic popup registry. Bridge icon/music popups to the older TRP3
 -- popup functions and support Extended's own registered custom popups.
@@ -1115,14 +1164,9 @@ API.popup.showPopup = function(popupID, anchor, args)
         API.popup.showIconBrowser(args[1], args[2], false);
         local browser = _G.TRP3_IconBrowser;
         if browser then
-            browser:SetParent(UIParent);
-            if browser.SetFrameStrata then browser:SetFrameStrata("DIALOG"); end
-            browser:ClearAllPoints();
-            if anchor and anchor.parent then
-                browser:SetPoint(anchor.point or "CENTER", anchor.parent, anchor.parentPoint or "CENTER", anchor.x or 0, anchor.y or 0);
-            else
-                browser:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
-            end
+            local specialMode;
+            if _G.TRP3_InventoryPageMain and _G.TRP3_InventoryPageMain:IsShown() then specialMode = "inventory-icons"; end
+            TRP3X_WOTLK.positionPopup(browser, anchor, specialMode);
             if _G.TRP3_PopupsFrame then _G.TRP3_PopupsFrame:Hide(); end
             browser:Show();
         end
@@ -1152,17 +1196,53 @@ API.popup.showPopup = function(popupID, anchor, args)
             entry.frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
             if entry.frame.SetFrameLevel then entry.frame:SetFrameLevel(100); end
         elseif anchor and anchor.parent then
-            entry.frame:SetPoint(anchor.point or "CENTER", anchor.parent, anchor.parentPoint or "CENTER", anchor.x or 0, anchor.y or 0);
+            TRP3X_WOTLK.positionPopup(entry.frame, anchor);
             if entry.frame.SetFrameLevel and anchor.parent.GetFrameLevel then
                 entry.frame:SetFrameLevel(anchor.parent:GetFrameLevel() + 20);
             end
         else
-            entry.frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
+            TRP3X_WOTLK.positionPopup(entry.frame);
         end
         if entry.showMethod then return entry.showMethod(unpack(args)); end
     end
 end
-API.popup.hidePopups = oldHidePopups or function() end;
+API.popup.hidePopups = function()
+    if oldHidePopups then oldHidePopups(); end
+    TRP3X_WOTLK.hideExtendedPopups();
+end;
+
+
+-- Alpha 18: direct API-11 context menus use a fixed horizontal offset and can
+-- open off-screen. Re-anchor the first menu on a safe side of its source and
+-- clamp all submenu levels.
+do
+    local oldDisplayDropDown = API.ui.listbox.displayDropDown;
+    if oldDisplayDropDown and not TRP3X_WOTLK.dropDownClampInstalled then
+        API.ui.listbox.displayDropDown = function(anchor, values, callback, space, addCancel)
+            oldDisplayDropDown(anchor, values, callback, 0, addCancel);
+            for i = 1, 4 do
+                local list = _G["DropDownList" .. i];
+                if list and list.SetClampedToScreen then list:SetClampedToScreen(true); end
+            end
+            local list = _G.DropDownList1;
+            if list and list:IsShown() and anchor and anchor.GetCenter then
+                local ax, ay = anchor:GetCenter();
+                local ux, uy = UIParent:GetCenter();
+                local h = UIParent:GetHeight() or 768;
+                ax, ay, ux = ax or ux, ay or uy, ux or 0;
+                list:ClearAllPoints();
+                if ay and ay > h * 0.55 then
+                    if ax and ax > ux then list:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -4);
+                    else list:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -4); end
+                else
+                    if ax and ax > ux then list:SetPoint("BOTTOMRIGHT", anchor, "TOPRIGHT", 0, 4);
+                    else list:SetPoint("BOTTOMLEFT", anchor, "TOPLEFT", 0, 4); end
+                end
+            end
+        end;
+        TRP3X_WOTLK.dropDownClampInstalled = true;
+    end
+end
 
 -- ---------------------------------------------------------------------------
 -- Minimal breadcrumb navbar functions used by Extended and Tools.
@@ -1207,12 +1287,23 @@ function NavBar_AddButton(nav, data)
         -- Quest log callbacks read button.id/button.name rather than .data.
         for key, value in pairs(data) do button[key] = value; end
     end
-    button:SetText((data and data.name) or "?");
+    local fullText = (data and data.name) or "?";
+    button:SetText(fullText);
+    local fs = button.GetFontString and button:GetFontString();
+    if fs then
+        fs:SetWidth(82);
+        if fs.SetWordWrap then fs:SetWordWrap(false); end
+        local shown = fullText;
+        while #shown > 4 and fs.GetStringWidth and fs:GetStringWidth() > 82 do
+            shown = shown:sub(1, #shown - 1);
+            button:SetText(shown .. "...");
+        end
+    end
     button:SetScript("OnClick", data and data.OnClick or nil);
     if index == 1 then
-        button:SetPoint("LEFT", nav.home or nav, "RIGHT", 4, 0);
+        button:SetPoint("LEFT", nav.home or nav, "RIGHT", 8, 0);
     else
-        button:SetPoint("LEFT", buttons[index - 1], "RIGHT", 4, 0);
+        button:SetPoint("LEFT", buttons[index - 1], "RIGHT", 8, 0);
     end
     button:Show();
     table.insert(buttons, button);

@@ -527,11 +527,25 @@ local ACTION_FLAG_EXPERT = "5";
 local ACTION_FLAG_COPY = "6";
 local ACTION_FLAG_EXPORT = "7";
 local ACTION_FLAG_FULL_EXPORT = "8";
+local ACTION_FLAG_EDIT = "9";
+
+local function editDatabaseObject(objectID, anchor)
+	local class = getClass(objectID);
+	if not class then return; end
+	local mode = class.MD and class.MD.MO;
+	if class.TY == TRP3_DB.types.ITEM and mode == TRP3_DB.modes.QUICK then
+		TRP3_API.extended.tools.openItemQuickEditor(anchor or ToolFrame, nil, objectID, nil, false);
+	else
+		TRP3_API.extended.tools.goToPage(objectID, true);
+	end
+end
 
 function onLineActionSelected(value, button)
 	local action = value:sub(1, 1);
 	local objectID = value:sub(2);
-	if action == ACTION_FLAG_DELETE then
+	if action == ACTION_FLAG_EDIT then
+		editDatabaseObject(objectID, button);
+	elseif action == ACTION_FLAG_DELETE then
 		local _, name, _ = TRP3_API.extended.tools.getClassDataSafeByType(getClass(objectID));
 		TRP3_API.popup.showConfirmPopup(loc("DB_REMOVE_OBJECT_POPUP"):format(objectID, name or UNKNOWN), function()
 			TRP3_API.extended.removeObjectByFullID(objectID);
@@ -589,6 +603,9 @@ end
 function onLineRightClick(lineWidget, data)
 	local values = {};
 	tinsert(values, {data.text, nil});
+	if TRP3_API.extended.isObjectMine(data.rootID) then
+		tinsert(values, {loc("CM_EDIT") or "Edit", ACTION_FLAG_EDIT .. data.fullID, loc("CM_OPEN") or "Open the editor"});
+	end
 	if TRP3_API.extended.isObjectMine(data.rootID) or TRP3_API.extended.isObjectExchanged(data.rootID) then
 		-- Alpha 16: nested quests/steps/inner objects can be deleted too.
 		tinsert(values, {DELETE, ACTION_FLAG_DELETE .. data.fullID, loc("DB_DELETE_TT")});

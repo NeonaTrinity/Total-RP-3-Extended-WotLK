@@ -790,6 +790,8 @@ editor.init = function(ToolFrame, effectMenu)
 	editor:SetScript("OnHide", function()
 		if editor.element.current then editor.element.current:Hide(); end
 		editor.element:Hide();
+		if TRP3_ConditionEditor and TRP3_ConditionEditor.operand then TRP3_ConditionEditor.operand:Hide(); end
+		if TRP3_ConditionEditor and TRP3_ConditionEditor:IsShown() then TRP3_ConditionEditor:Hide(); end
 		if editor.overlay then editor.overlay:Hide(); end
 		unlockElements();
 	end);

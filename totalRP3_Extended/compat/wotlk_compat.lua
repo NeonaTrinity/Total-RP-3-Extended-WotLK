@@ -6,7 +6,7 @@
 --------------------------------------------------------------------------------
 
 TRP3X_WOTLK = TRP3X_WOTLK or {};
-TRP3X_WOTLK.alpha = "18";
+TRP3X_WOTLK.alpha = "19";
 -- The stock WotLK TRP3 toolbar crashes when an addon registers its first button
 -- because toolbar.lua assumes GetPushedTexture() is non-nil. Keep the public
 -- base addon untouched; Alpha 16 keeps the Extended buttons on a small
@@ -1088,7 +1088,7 @@ Model_OnMouseDown = Model_OnMouseDown or function() end;
 Model_OnMouseUp = Model_OnMouseUp or function() end;
 
 
--- Alpha 18: keep Extended browsers/panels on-screen on low-resolution Wrath
+-- Alpha 19: keep Extended browsers/panels on-screen on low-resolution Wrath
 -- clients. API-11 browsers were designed around TRP3_PopupsFrame; Extended
 -- reparents them to UIParent, so their original anchors and hide behavior are
 -- no longer sufficient.
@@ -1212,7 +1212,7 @@ API.popup.hidePopups = function()
 end;
 
 
--- Alpha 18: direct API-11 context menus use a fixed horizontal offset and can
+-- Alpha 19: direct API-11 context menus use a fixed horizontal offset and can
 -- open off-screen. Re-anchor the first menu on a safe side of its source and
 -- clamp all submenu levels.
 do
@@ -1241,6 +1241,38 @@ do
             end
         end;
         TRP3X_WOTLK.dropDownClampInstalled = true;
+    end
+end
+
+-- Re-clamp every UIDropDownMenu level when it appears. Submenus are created
+-- lazily after the initial displayDropDown() call, so handling only level 1
+-- is not enough for the condition/workflow editors.
+do
+    if not TRP3X_WOTLK.dropDownOnShowClampInstalled then
+        for level = 1, 4 do
+            local list = _G["DropDownList" .. level];
+            if list then
+                if list.SetClampedToScreen then list:SetClampedToScreen(true); end
+                if list.HookScript then
+                    list:HookScript("OnShow", function(self)
+                        if self.SetClampedToScreen then self:SetClampedToScreen(true); end
+                        -- If a submenu is pushed past the right edge, mirror it
+                        -- to the left of its automatic anchor. Clamp handles the
+                        -- remaining top/bottom edge cases.
+                        local right = self.GetRight and self:GetRight();
+                        local screenRight = UIParent.GetRight and UIParent:GetRight();
+                        if right and screenRight and right > screenRight - 4 then
+                            local point, relativeTo, relativePoint, x, y = self:GetPoint(1);
+                            if relativeTo then
+                                self:ClearAllPoints();
+                                self:SetPoint("TOPRIGHT", relativeTo, "TOPLEFT", -4, y or 0);
+                            end
+                        end
+                    end);
+                end
+            end
+        end
+        TRP3X_WOTLK.dropDownOnShowClampInstalled = true;
     end
 end
 

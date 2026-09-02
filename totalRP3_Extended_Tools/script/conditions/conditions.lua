@@ -338,7 +338,7 @@ local function computeLogicalExpression(scriptData)
 end
 
 listCondition = function()
-	editor.operand:Hide();
+	closeOperandLayer();
 	initList(editor, editor.scriptData, editor.slider);
 	editor.full:SetText(computeLogicalExpression(editor.scriptData));
 end
@@ -453,6 +453,20 @@ function editor.getConditionPreview(scriptData)
 	else
 		return computeLogicalExpression(scriptData);
 	end
+end
+
+local function closeOperandLayer()
+	if operandEditor.left and operandEditor.left.args then
+		if operandEditor.left.args.currentEditor then operandEditor.left.args.currentEditor:Hide(); end
+		operandEditor.left.args.currentEditor = nil;
+		operandEditor.left.args:Hide();
+	end
+	if operandEditor.right and operandEditor.right.args then
+		if operandEditor.right.args.currentEditor then operandEditor.right.args.currentEditor:Hide(); end
+		operandEditor.right.args.currentEditor = nil;
+		operandEditor.right.args:Hide();
+	end
+	if editor.operand then editor.operand:Hide(); end
 end
 
 --*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -590,6 +604,10 @@ TRP3_API.extended.tools.getEvaluatedOperands = getEvaluatedOperands;
 
 function editor.init()
 	editor.scriptData = {};
+	if editor.HookScript and not editor.trp3xCleanupHooked then
+		editor:HookScript("OnHide", closeOperandLayer);
+		editor.trp3xCleanupHooked = true;
+	end
 
 	editor.listheader:SetText(loc("COND_TESTS"));
 	editor.fullheader:SetText(loc("COND_COMPLETE"));
@@ -613,9 +631,11 @@ function editor.init()
 	handleMouseWheel(editor, editor.slider);
 	editor.slider:SetValue(0);
 
-	operandEditor.close:SetScript("OnClick", function()
-		editor.operand:Hide();
-	end);
+	operandEditor.close:SetScript("OnClick", closeOperandLayer);
+	if editor.operand.close then
+		editor.operand.close:SetScript("OnClick", closeOperandLayer);
+		editor.operand.close:SetFrameLevel(editor:GetFrameLevel() + 50);
+	end
 	operandEditor.confirm:SetScript("OnClick", function()
 		saveOperand();
 	end);

@@ -499,7 +499,28 @@ function TRP3_API.extended.tools.initCampaignEditorNormal(ToolFrame)
 	-- Editor
 	npc.editor.title:SetText(loc("CA_NPC_EDITOR"));
 	npc.editor.id.title:SetText(loc("CA_NPC_ID"));
-	setTooltipForSameFrame(npc.editor.id.help, "RIGHT", 0, 5, loc("CA_NPC_ID"), loc("CA_NPC_ID_TT"));
+	-- Keep the information icon visible and make it useful on Wrath: clicking
+	-- it copies the currently targeted creature/vehicle ID into the field.
+	local function copyTargetNPCID()
+		local unitType, targetNPCID = Utils.str.getUnitDataFromGUID("target");
+		if (unitType == "Creature" or unitType == "Vehicle") and targetNPCID then
+			npc.editor.id:SetText(tostring(targetNPCID));
+			npc.editor.id:SetCursorPosition(0);
+		else
+			Utils.message.displayMessage("Target an NPC first.", 2);
+		end
+	end
+	if npc.editor.id.help then
+		npc.editor.id.help:Show();
+		npc.editor.id.help:SetScript("OnClick", copyTargetNPCID);
+		setTooltipForSameFrame(npc.editor.id.help, "RIGHT", 0, 5, loc("CA_NPC_ID"), "Click to copy the NPC ID from your current target.");
+		-- API-11's titled-help editbox normally hides this icon when focus is
+		-- lost. Keep it permanently available for the target-ID shortcut.
+		npc.editor.id:SetScript("OnEditFocusLost", function(self)
+			self:HighlightText(0, 0);
+			if self.help then self.help:Show(); end
+		end);
+	end
 	npc.editor.name.title:SetText(loc("CA_NPC_EDITOR_NAME"));
 	npc.editor.description.title:SetText(loc("CA_NPC_EDITOR_DESC"));
 	npc.editor.icon:SetScript("OnClick", function(self)

@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------
 -- Total RP 3 Extended - WotLK custom item chat links
--- Alpha 18 compatibility feature for the 3.3.5 port.
+-- Alpha 19 compatibility feature for the 3.3.5 port.
 --
 -- WoW 3.3.5 rejects unknown |H...|h links in SendChatMessage(). We therefore
 -- send only the clean visible text "[Item Name]" through normal chat. In
@@ -99,18 +99,49 @@ local function makeLocalHyperlink(fullID, sender, version, label)
     );
 end
 
--- A clicked chat link is not a hover event, so the normal inventory tooltip
--- watchdog would hide it almost immediately. Pin it at the mouse for ten
--- seconds; this matches the user's expectation without inventing a second
--- tooltip implementation just to add a close button.
+-- A clicked chat link is not a hover event. Pin it at the mouse, but give it
+-- explicit lifecycle state so UIParent (which is always under the mouse) cannot
+-- keep the tooltip alive forever after the timeout expires.
+local LINK_TOOLTIP_LIFETIME = 30;
+local function hideLinkTooltip()
+    if TRP3_ItemTooltip and TRP3_ItemTooltip.trp3xLinkID then
+        TRP3_ItemTooltip.trp3xLinkID = nil;
+        TRP3_ItemTooltip.trp3xPinnedUntil = nil;
+        TRP3_ItemTooltip:Hide();
+        return true;
+    end
+    return false;
+end
+
 local function showLinkTooltip(fullID)
     if not classExists(fullID) then return false; end
+    if TRP3_ItemTooltip and TRP3_ItemTooltip:IsShown() and TRP3_ItemTooltip.trp3xLinkID == fullID then
+        hideLinkTooltip();
+        return true;
+    end
+    if TRP3_ItemTooltip then TRP3_ItemTooltip:Hide(); end
     local class = getClass(fullID);
     showItemTooltip(UIParent, { id = fullID, count = 1 }, class, true, "ANCHOR_CURSOR");
     if TRP3_ItemTooltip then
-        TRP3_ItemTooltip.trp3xPinnedUntil = (GetTime and GetTime() or 0) + 10;
+        TRP3_ItemTooltip.trp3xLinkID = fullID;
+        TRP3_ItemTooltip.trp3xPinnedUntil = (GetTime and GetTime() or 0) + LINK_TOOLTIP_LIFETIME;
+        TRP3_ItemTooltip:EnableMouse(true);
     end
     return true;
+end
+
+-- Clicking the pinned tooltip itself also dismisses it. This only consumes the
+-- click while the tooltip is showing a chat-linked Extended item.
+if TRP3_ItemTooltip and not TRP3X_WOTLK.itemLinkTooltipClickInstalled then
+    TRP3X_WOTLK.itemLinkTooltipClickInstalled = true;
+    local previousMouseDown = TRP3_ItemTooltip:GetScript("OnMouseDown");
+    TRP3_ItemTooltip:SetScript("OnMouseDown", function(self, button)
+        if self.trp3xLinkID then
+            hideLinkTooltip();
+            return;
+        end
+        if previousMouseDown then previousMouseDown(self, button); end
+    end);
 end
 
 -- Metadata advertisements waiting for the matching clean chat line.

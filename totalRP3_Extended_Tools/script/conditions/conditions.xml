@@ -185,6 +185,10 @@
 
 				<Frames>
 
+					<Button parentKey="close" inherits="UIPanelCloseButton" name="$parentclose">
+						<Anchors><Anchor point="TOPRIGHT" x="-8" y="-8"/></Anchors>
+					</Button>
+
 					<Frame parentKey="editor" inherits="TRP3_EditorEffectTemplate" name="$parenteditor">
 						<Size x="700" y="250"/>
 						<Anchors>

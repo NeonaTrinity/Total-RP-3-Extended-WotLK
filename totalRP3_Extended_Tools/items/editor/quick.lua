@@ -95,6 +95,27 @@ local function loadData(data)
 	onIconSelected(data.BA.IC);
 end
 
+local function positionQuickEditor(anchoredFrame, fromInv)
+	-- API-11 configureHoverFrame can place this 450x400 editor above the
+	-- Tools window and outside the screen. Treat it as a real dialog instead.
+	editor:SetParent(UIParent);
+	editor:ClearAllPoints();
+	if editor.SetFrameStrata then editor:SetFrameStrata("DIALOG"); end
+	if editor.SetClampedToScreen then editor:SetClampedToScreen(true); end
+
+	if fromInv and _G.TRP3_InventoryPageMain and _G.TRP3_InventoryPageMain.Model and _G.TRP3_InventoryPageMain:IsShown() then
+		editor:SetPoint("CENTER", _G.TRP3_InventoryPageMain.Model, "CENTER", 0, 0);
+	elseif toolFrame and toolFrame:IsShown() then
+		editor:SetPoint("CENTER", toolFrame, "CENTER", 0, -10);
+	elseif anchoredFrame and anchoredFrame.GetCenter then
+		editor:SetPoint("CENTER", anchoredFrame, "CENTER", 0, 0);
+	else
+		editor:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
+	end
+	if editor.SetFrameLevel then editor:SetFrameLevel(120); end
+	editor:Show();
+end
+
 function TRP3_API.extended.tools.openItemQuickEditor(anchoredFrame, callback, classID, fromInv, noSave)
 	onCreatedCallback = callback;
 	editor.classID = classID;
@@ -109,19 +130,9 @@ function TRP3_API.extended.tools.openItemQuickEditor(anchoredFrame, callback, cl
 
 	if classID then
 		editor.title:SetText(loc("IT_QUICK_EDITOR_EDIT"));
-		if not fromInv then
-			TRP3_API.ui.frame.configureHoverFrame(editor, toolFrame, "CENTER", 0, 5, false);
-		else
-			TRP3_API.ui.frame.configureHoverFrame(editor, anchoredFrame, "CENTER", 0, 0, false);
-		end
 		loadData(getClass(classID));
 	else
 		editor.title:SetText(loc("IT_QUICK_EDITOR"));
-		if not fromInv then
-			TRP3_API.ui.frame.configureHoverFrame(editor, anchoredFrame, "BOTTOM", 0, 5, false);
-		else
-			TRP3_API.ui.frame.configureHoverFrame(editor, anchoredFrame, "CENTER", 0, 0, false);
-		end
 		loadData({
 			BA = {
 				NA = loc("IT_NEW_NAME"),
@@ -129,6 +140,7 @@ function TRP3_API.extended.tools.openItemQuickEditor(anchoredFrame, callback, cl
 			}
 		});
 	end
+	positionQuickEditor(anchoredFrame, fromInv);
 end
 
 local function onQuickCreatedFromList(classID, _)

@@ -996,6 +996,14 @@ function TRP3_API.inventory.initLootFrame()
 	createRefreshOnFrame(TRP3_ItemTooltip, CONTAINER_UPDATE_FREQUENCY, function(self)
 		if self.trp3xPinnedUntil then
 			if (GetTime and GetTime() or 0) < self.trp3xPinnedUntil then return; end
+			-- Chat-link tooltips use UIParent as their owner, so the normal
+			-- MouseIsOver(ref) test can never expire them. Hard-hide at cap.
+			if self.trp3xLinkID then
+				self.trp3xPinnedUntil = nil;
+				self.trp3xLinkID = nil;
+				self:Hide();
+				return;
+			end
 			self.trp3xPinnedUntil = nil;
 		end
 		if not self.ref or not MouseIsOver(self.ref) then
@@ -1005,6 +1013,7 @@ function TRP3_API.inventory.initLootFrame()
 	TRP3_ItemTooltip:SetScript("OnHide", function(self)
 		self.ref = nil;
 		self.trp3xPinnedUntil = nil;
+		self.trp3xLinkID = nil;
 	end);
 
 	-- Inventory button

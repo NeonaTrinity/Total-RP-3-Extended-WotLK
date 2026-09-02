@@ -1,3 +1,19 @@
+TRP3 Extended WotLK Alpha 19
+================================
+
+Focused UI-state fixes:
+- Quick-mode item editor now opens centered/clamped over Extended Tools instead
+  of using API-11 hover positioning that could place it above/off-screen.
+- My Database right-click menu has an explicit Edit action.
+- Campaign custom-NPC ID information button copies the currently targeted NPC
+  ID again and stays visible.
+- Chat-linked item tooltip is dismissible by clicking the same link again or
+  clicking the tooltip, and has a hard 30-second lifetime.
+- Condition operand layer has its own visible close button and cleans up nested
+  operand frames on every exit path.
+- Dropdown submenu levels are clamped on show; right-edge submenus mirror left.
+
+
 TRP3 Extended WotLK Alpha 18
 ================================
 

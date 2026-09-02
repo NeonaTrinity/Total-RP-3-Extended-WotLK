@@ -407,7 +407,7 @@
 					<Layer level="OVERLAY">
 						<FontString parentKey="attributes" inherits="GameFontNormal" justifyH="LEFT" name="$parentattributes">
 							<Anchors>
-								<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentWorkflow" x="0" y="-30"/>
+								<Anchor point="TOP" x="0" y="-205"/>
 								<Anchor point="LEFT" x="28" y="0"/>
 								<Anchor point="RIGHT" x="0" y="0"/>
 							</Anchors>

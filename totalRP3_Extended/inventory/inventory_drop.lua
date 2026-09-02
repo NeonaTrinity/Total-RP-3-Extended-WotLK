@@ -974,7 +974,7 @@ function dropFrame.init()
 				dropFrame.callbackDrop();
 			end
 		end,
-		timeout = false,
+		timeout = 0,
 		whileDead = true,
 		hideOnEscape = true,
 		showAlert = true,

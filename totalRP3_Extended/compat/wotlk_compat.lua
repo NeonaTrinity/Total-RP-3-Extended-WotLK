@@ -615,6 +615,24 @@ API.navigation = API.navigation or {};
 API.navigation.showTutorialTooltip = API.navigation.showTutorialTooltip or function() end;
 API.navigation.hideTutorialTooltip = API.navigation.hideTutorialTooltip or function() end;
 
+-- Fonts referenced by Extended documents/quest HTML on later clients.
+-- Use the closest stock Wrath font objects when those globals are absent.
+DestinyFontHuge = DestinyFontHuge or GameFontNormalHuge or GameFontNormalLarge;
+QuestFont_Huge = QuestFont_Huge or GameFontNormalLarge or GameFontNormal;
+
+-- Development/fallback access to the ground-item search while stock TRP3 toolbar
+-- integration remains disabled on the WotLK backport. /trpext search scans for
+-- items dropped by this character near the current position.
+SLASH_TRP3XEXT1 = SLASH_TRP3XEXT1 or "/trpext";
+SlashCmdList["TRP3XEXT"] = SlashCmdList["TRP3XEXT"] or function(msg)
+    msg = string.lower(tostring(msg or ""));
+    if msg == "search" and TRP3_API.inventory and TRP3_API.inventory.searchForItems then
+        TRP3_API.inventory.searchForItems();
+    elseif DEFAULT_CHAT_FRAME then
+        DEFAULT_CHAT_FRAME:AddMessage("|cff00ff00TRP3 Extended WotLK:|r /trpext search - search nearby RP ground items");
+    end
+end;
+
 -- Model helper globals from later FrameXML. Keep controls usable without the
 -- retail model-control implementation.
 Model_OnMouseDown = Model_OnMouseDown or function() end;
@@ -640,7 +658,7 @@ API.popup.showPopup = function(popupID, anchor, args)
     end
     args = args or {};
     if popupID == API.popup.ICONS and API.popup.showIconBrowser then
-        return API.popup.showIconBrowser(args[1], args[2], true);
+        return API.popup.showIconBrowser(args[1], args[2], false);
     elseif popupID == API.popup.MUSICS and API.popup.showMusicBrowser then
         return API.popup.showMusicBrowser(args[1]);
     elseif popupID == API.popup.COMPANIONS then

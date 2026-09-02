@@ -51,7 +51,9 @@ TRP3_API.inventory.resetWearable = resetEquip;
 local function setModelPosition(self, rotation)
 	self.rotation = rotation;
 	self:SetRotation(self.rotation);
-	self:RefreshCamera();
+	if self.RefreshCamera then
+		self:RefreshCamera();
+	end
 end
 
 local SLOT_MARGIN = 35;

@@ -417,6 +417,21 @@ local OPERANDS = {
 		},
 	},
 
+	-- Historical 1.0.7 bundled gun template references inv_item_count_con,
+	-- but that operand is absent from the shipped runtime table. It means
+	-- "count this item inside the current item/container". Preserve that
+	-- intended behavior instead of silently falling back to the whole inventory.
+	["inv_item_count_con"] = {
+		numeric = true,
+		codeReplacement = function(args)
+			local id = args[1] or "";
+			return ("getItemCount(\"%s\", args.object)"):format(id);
+		end,
+		env = {
+			["getItemCount"] = "TRP3_API.inventory.getItemCount",
+		},
+	},
+
 	["inv_item_weight"] = {
 		numeric = true,
 		codeReplacement = function(args)

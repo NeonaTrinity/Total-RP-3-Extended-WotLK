@@ -518,6 +518,18 @@ local function initContainerSlot(slot, simpleLeftClick, lootBuilder)
 		slot:SetScript("OnClick", function(self, button)
 			if not self.loot and self.info and not TRP3_API.inventory.isInTransaction(self.info) then
 				if button == "LeftButton" then
+					if IsShiftKeyDown() and ChatEdit_GetActiveWindow and ChatEdit_GetActiveWindow() and TRP3_API.inventory.getItemChatLink then
+						local link = TRP3_API.inventory.getItemChatLink(self.info.id, self.class);
+						if link then
+							if ChatEdit_InsertLink then
+								ChatEdit_InsertLink(link);
+							else
+								local editBox = ChatEdit_GetActiveWindow();
+								if editBox and editBox.Insert then editBox:Insert(link); end
+							end
+							return;
+						end
+					end
 					if IsShiftKeyDown() and (self.info.count or 1) > 1 then
 						OpenStackSplitFrame(self.info.count, self, "BOTTOMRIGHT", "TOPRIGHT");
 					elseif simpleLeftClick then

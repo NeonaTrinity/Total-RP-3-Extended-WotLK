@@ -1,3 +1,20 @@
+Alpha 14 changes:
+- Fixes wearable model OnMouseUp nil callback after moving the location marker.
+- Fixes Tools breadcrumb navigation by exposing the API-34 navBar.navList field.
+- Adds a WotLK-safe TRP3X_IconButton alias and fixes stash icon editing.
+- Records API-11 base TRP3 character-theme playback in Extended Sound History.
+- Adds Extended item chat hyperlinks:
+    * Shift-click an RP inventory item while a chat edit box is open.
+    * Clicking a TRP3 Extended item link shows its RP tooltip.
+    * If the receiving Alpha 14 client does not have the custom item definition,
+      it requests the root object from the player embedded in the link and then
+      displays the tooltip after importing it through the normal Extended
+      security/object registration path.
+- Loose ground drops remain local by design, matching original Extended 1.0.7.
+  Cross-player ground discovery is implemented through shared stashes.
+
+
+
 
 Alpha 13 restoration / compatibility pass
 ------------------------------------------

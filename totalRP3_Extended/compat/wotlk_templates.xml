@@ -64,6 +64,17 @@
 
 
 
+    <!-- API-11 TRP3_IconButton creates $parentIcon as a global but does not
+         expose the API-34 .Icon parentKey field. -->
+    <Button name="TRP3X_IconButton" inherits="TRP3_IconButton" virtual="true">
+        <Scripts>
+            <OnLoad>
+                local n = self:GetName();
+                if n then self.Icon = _G[n .. "Icon"]; end
+            </OnLoad>
+        </Scripts>
+    </Button>
+
     <!-- API-11 TRP3_TitledEditBox exposes only $parentText; API-34 Extended
          expects the same object as .title. -->
     <EditBox name="TRP3X_TitledEditBox" inherits="TRP3_TitledEditBox" virtual="true">

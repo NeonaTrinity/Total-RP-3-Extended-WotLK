@@ -6,10 +6,10 @@
 --------------------------------------------------------------------------------
 
 TRP3X_WOTLK = TRP3X_WOTLK or {};
-TRP3X_WOTLK.alpha = "13";
+TRP3X_WOTLK.alpha = "14";
 -- The stock WotLK TRP3 toolbar crashes when an addon registers its first button
 -- because toolbar.lua assumes GetPushedTexture() is non-nil. Keep the public
--- base addon untouched; Alpha 13 restores the Extended buttons on a small
+-- base addon untouched; Alpha 14 keeps the Extended buttons on a small
 -- compatibility action bar instead of feeding them into the broken stock bar.
 TRP3X_WOTLK.disableStockToolbarIntegration = true;
 
@@ -752,6 +752,30 @@ do
     end
     if not music.playLocalMusic then music.playLocalMusic = music.playMusic; end
     if not music.playLocalSoundID then music.playLocalSoundID = music.playSoundID; end
+
+    -- API-11 base TRP3 uses Utils.music.play()/stop() for character themes.
+    -- Extended's history only sees the newer playMusic/playSoundID helpers, so
+    -- wrap the existing base functions and record those plays too.
+    if music.play and not music._trp3xWrappedBasePlay then
+        music._trp3xWrappedBasePlay = music.play;
+        music.play = function(value, ...)
+            local result = music._trp3xWrappedBasePlay(value, ...);
+            remember(value, type(value) == "number" and "SFX" or "Music", "TRP3 theme");
+            return result;
+        end
+    end
+    if music.stop and not music._trp3xWrappedBaseStop then
+        music._trp3xWrappedBaseStop = music.stop;
+        music.stop = function(...)
+            local result = music._trp3xWrappedBaseStop(...);
+            for id, handler in pairs(music._trp3xHandlers) do
+                if handler.channel == "Music" then
+                    music._trp3xHandlers[id] = nil;
+                end
+            end
+            return result;
+        end
+    end
 end
 
 
@@ -932,6 +956,9 @@ API.popup.hidePopups = oldHidePopups or function() end;
 -- ---------------------------------------------------------------------------
 local function navEnsure(nav)
     nav._trp3xButtons = nav._trp3xButtons or {};
+    -- API-34's navbar exposes the active breadcrumb buttons as .navList.
+    -- Tools indexes this immediately after NavBar_AddButton().
+    nav.navList = nav._trp3xButtons;
     return nav._trp3xButtons;
 end
 function NavBar_Reset(nav)

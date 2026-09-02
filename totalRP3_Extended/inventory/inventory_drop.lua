@@ -283,8 +283,13 @@ local stashContainer;
 local createRefreshOnFrame = TRP3_API.ui.frame.createRefreshOnFrame;
 
 local iconHandler = function(icon)
-	stashEditFrame.icon.Icon:SetTexture("Interface\\ICONS\\" .. icon);
-	stashEditFrame.icon.selectedIcon = icon;
+	if stashEditFrame.icon and not stashEditFrame.icon.Icon and stashEditFrame.icon.GetName then
+		stashEditFrame.icon.Icon = _G[stashEditFrame.icon:GetName() .. "Icon"];
+	end
+	if stashEditFrame.icon and stashEditFrame.icon.Icon then
+		stashEditFrame.icon.Icon:SetTexture("Interface\\ICONS\\" .. icon);
+	end
+	if stashEditFrame.icon then stashEditFrame.icon.selectedIcon = icon; end
 end
 
 local function openStashEditor(stashIndex)

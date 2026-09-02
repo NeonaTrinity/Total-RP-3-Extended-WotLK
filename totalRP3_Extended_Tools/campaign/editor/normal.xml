@@ -253,7 +253,7 @@
 								</Anchors>
 							</Button>
 
-							<Button parentKey="icon" inherits="TRP3_IconButton" name="$parenticon">
+							<Button parentKey="icon" inherits="TRP3X_IconButton" name="$parenticon">
 								<Anchors>
 									<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentname" x="0" y="-50"/>
 									<Anchor point="LEFT" x="25" y="0"/>

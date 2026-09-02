@@ -1,4 +1,4 @@
-TRP3 Extended WotLK 3.3.5a - Alpha 13 by J3
+TRP3 Extended WotLK 3.3.5a - Alpha 14 by J3
 
 # This addon is currently in alpha and not for public distrobution yet #
 Features working:

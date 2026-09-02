@@ -28,6 +28,7 @@
 	<Script file="inventory_utils.lua"/>
 	<Script file="inventory.lua"/>
 	<Script file="container.lua"/>
+	<Script file="item_links.lua"/>
 	<Script file="inventory_page.lua"/>
 
 	<Button name="TRP3_QuestButtonTemplate" virtual="true">
@@ -381,7 +382,9 @@
 						</Anchors>
 						<Scripts>
 							<OnMouseUp>
-								self.onMouseUpFunc(self, button);
+								if self.onMouseUpFunc then
+									self.onMouseUpFunc(self, button);
+								end
 							</OnMouseUp>
 							<OnMouseDown>
 								Model_OnMouseDown(self, button);

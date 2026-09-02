@@ -1,4 +1,24 @@
 
+Alpha 16 focus:
+- Campaign/quest breadcrumb payload compatibility and safer ID construction.
+- Explicit deletion for user-created campaigns and nested database objects.
+- Database list scrolling on the Wrath client.
+- WotLK-safe icons for Create Item/Campaign and workflow element selectors.
+- Campaign action macro icon fallbacks for Listen/Talk.
+- Fixed historical Campaign 'Create From' clone call while preserving Item 'Create From'.
+- Centered/clamped object browser so Create From can always be closed.
+- Workflow selector close button/unlock behavior and missing Middle-click localization fallback.
+- Custom campaign NPC Look fallback for name/description.
+- Lighter quest/dialog presentation with dark readable text.
+- Clean Extended item sharing: normal chat carries only [Item Name]; supported private/group channels send metadata separately over addon chat so Alpha 16 clients can render a clickable Extended link.
+
+Notes:
+- Loose dropped items remain local to the dropper by original 1.0.7 design. Shared stashes are the multiplayer ground-storage feature.
+- Remote stashes require the owner to be online; allowing remote deposits is deferred as a future feature.
+- Wearable items use an inspection marker/pose, not a 3D transmog model.
+- Campaign reset/start-pause behavior remains faithful to 1.0.7. User-created campaign objects can now be explicitly deleted.
+
+
 Alpha 15 focus:
 - Broad API-11 setupIconButton compatibility for Tools workflow/campaign/document editors.
 - Extended icon browsers now open as anchored DIALOG frames instead of behind/in the stock TRP3 popup container.

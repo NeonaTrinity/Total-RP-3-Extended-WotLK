@@ -419,6 +419,27 @@ local function onStart()
 	toolFrame.actions.cancel:SetScript("OnClick", function()
 		goToListPage();
 	end);
+	toolFrame.actions.delete:SetText(DELETE or "Delete");
+	toolFrame.actions.delete:SetScript("OnClick", function()
+		local fullID = toolFrame.fullClassID;
+		if not fullID then return; end
+		local class = getClass(fullID);
+		local _, name = TRP3_API.extended.tools.getClassDataSafeByType(class);
+		TRP3_API.popup.showConfirmPopup(("Delete %s?\n\n%s"):format(name or "object", fullID), function()
+			local parts = {strsplit(TRP3_API.extended.ID_SEPARATOR, fullID)};
+			local parentID;
+			if #parts > 1 then
+				table.remove(parts, #parts);
+				parentID = table.concat(parts, TRP3_API.extended.ID_SEPARATOR);
+			end
+			TRP3_API.extended.removeObjectByFullID(fullID);
+			if parentID and TRP3_API.extended.classExists(parentID) then
+				goToPage(parentID, true);
+			else
+				goToListPage();
+			end
+		end);
+	end);
 	toolFrame.root.id:SetText(loc("EDITOR_ID_COPY"));
 	toolFrame.root.id:SetScript("OnClick", function()
 		TRP3_API.popup.showTextInputPopup(loc("EDITOR_ID_COPY_POPUP"), nil, nil, toolFrame.rootClassID);

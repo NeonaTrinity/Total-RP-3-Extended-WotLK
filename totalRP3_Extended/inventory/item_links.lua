@@ -1,11 +1,12 @@
 ----------------------------------------------------------------------------------
 -- Total RP 3 Extended - WotLK custom item chat links
--- Compatibility feature for the 3.3.5 port.
+-- Alpha 16 compatibility feature for the 3.3.5 port.
 --
--- 3.3.5 refuses unknown |H...|h hyperlink escape types when SendChatMessage()
--- transmits them to the server. Shift-click therefore inserts a plain-text,
--- server-safe token. Alpha 15 clients convert that token into a clickable local
--- hyperlink when the chat event is displayed.
+-- WoW 3.3.5 rejects unknown |H...|h links in SendChatMessage(). We therefore
+-- send only the clean visible text "[Item Name]" through normal chat. In
+-- channels that support addon traffic, item metadata is sent separately via
+-- SendAddonMessage and Alpha 16 clients locally turn the visible text into a
+-- clickable Extended hyperlink. Non-addon clients see only [Item Name].
 ----------------------------------------------------------------------------------
 local API = TRP3_API;
 local Globals, Events, Utils = API.globals, API.events, API.utils;
@@ -17,6 +18,8 @@ local showItemTooltip = API.inventory.showItemTooltip;
 
 local LINK_REQUEST = "ILRQ";
 local LINK_RESPONSE = "ILRS";
+local LINK_ADVERT_PREFIX = "TRP3XIL";
+local ADVERT_LIFETIME = 30;
 
 local function encode(value)
     value = tostring(value or "");
@@ -61,10 +64,17 @@ local function cleanLabel(value)
     value = tostring(value or "RP Item");
     value = value:gsub("|c%x%x%x%x%x%x%x%x", "");
     value = value:gsub("|r", "");
-    value = value:gsub("[%[%]<>\r\n]", "");
+    value = value:gsub("[%[%]<>]", "");
+    value = value:gsub("[%c]", "");
     if string.len(value) > 42 then value = string.sub(value, 1, 42); end
     if value == "" then value = "RP Item"; end
     return value;
+end
+
+local function normalizeName(name)
+    name = tostring(name or "");
+    name = name:gsub("%-.*$", "");
+    return name:lower();
 end
 
 local function getVersion(rootID)
@@ -82,17 +92,6 @@ local function getLabel(itemClass)
     return "RP Item";
 end
 
--- This is intentionally plain ASCII text. Unknown hyperlink escapes are
--- rejected by SendChatMessage() on the 3.3.5 client before they reach chat.
-function API.inventory.getItemChatLink(fullID, itemClass)
-    if not fullID then return nil; end
-    itemClass = itemClass or getClass(fullID);
-    local rootID = getRootClassID(fullID);
-    local rootVersion = getVersion(rootID);
-    local label = getLabel(itemClass);
-    return ("[%s]<TRP3X:%s:%d>"):format(label, hexEncode(fullID), rootVersion);
-end
-
 local function makeLocalHyperlink(fullID, sender, version, label)
     label = cleanLabel(label);
     return ("|cff33ff99|Htrp3xitem:%s:%s:%d|h[%s]|h|r"):format(
@@ -100,11 +99,74 @@ local function makeLocalHyperlink(fullID, sender, version, label)
     );
 end
 
+-- Anchor link-click tooltips beside the middle of the screen instead of to the
+-- cursor indefinitely like a normal hover tooltip.
+local linkTooltipAnchor = CreateFrame("Frame", "TRP3X_ItemLinkTooltipAnchor", UIParent);
+linkTooltipAnchor:SetSize(1, 1);
+linkTooltipAnchor:SetPoint("CENTER", UIParent, "CENTER", -180, 20);
+
 local function showLinkTooltip(fullID)
     if not classExists(fullID) then return false; end
     local class = getClass(fullID);
-    showItemTooltip(UIParent, { id = fullID, count = 1 }, class, true, "ANCHOR_CURSOR");
+    showItemTooltip(linkTooltipAnchor, { id = fullID, count = 1 }, class, true, "ANCHOR_RIGHT");
+    if C_Timer and C_Timer.After then
+        C_Timer.After(10, function()
+            if TRP3_ItemTooltip and TRP3_ItemTooltip.ref == linkTooltipAnchor then TRP3_ItemTooltip:Hide(); end
+        end);
+    end
     return true;
+end
+
+-- Metadata advertisements waiting for the matching clean chat line.
+local advertisedLinks = {};
+local function cacheAdvert(sender, fullID, version, label)
+    local key = normalizeName(sender);
+    if key == "" then return; end
+    advertisedLinks[key] = advertisedLinks[key] or {};
+    table.insert(advertisedLinks[key], 1, {
+        fullID = fullID,
+        version = tonumber(version) or 0,
+        label = cleanLabel(label),
+        expires = (GetTime and GetTime() or 0) + ADVERT_LIFETIME,
+    });
+    while #advertisedLinks[key] > 12 do table.remove(advertisedLinks[key]); end
+end
+
+local function advertiseForActiveChat(fullID, version, label)
+    if not ChatEdit_GetActiveWindow or not SendAddonMessage then return; end
+    local editBox = ChatEdit_GetActiveWindow();
+    if not editBox then return; end
+    local chatType = (editBox.GetAttribute and editBox:GetAttribute("chatType")) or editBox.chatType;
+    chatType = tostring(chatType or ""):upper();
+    local target = (editBox.GetAttribute and editBox:GetAttribute("tellTarget")) or editBox.tellTarget;
+    local supported = {
+        WHISPER = true, PARTY = true, RAID = true, GUILD = true,
+        OFFICER = true, BATTLEGROUND = true,
+    };
+    if not supported[chatType] then return; end
+
+    local payload = table.concat({hexEncode(fullID), tostring(version or 0), hexEncode(label)}, ":");
+    local ok;
+    if chatType == "WHISPER" then
+        if target and target ~= "" then ok = pcall(SendAddonMessage, LINK_ADVERT_PREFIX, payload, "WHISPER", target); end
+    else
+        ok = pcall(SendAddonMessage, LINK_ADVERT_PREFIX, payload, chatType);
+    end
+    if ok then
+        cacheAdvert(UnitName("player") or Globals.player_id or Globals.player, fullID, version, label);
+    end
+end
+
+-- Shift-click always inserts clean server-safe text. The side-channel advert is
+-- optional and only possible in whisper/group/guild-style channels.
+function API.inventory.getItemChatLink(fullID, itemClass)
+    if not fullID then return nil; end
+    itemClass = itemClass or getClass(fullID);
+    local rootID = getRootClassID(fullID);
+    local rootVersion = getVersion(rootID);
+    local label = getLabel(itemClass);
+    advertiseForActiveChat(fullID, rootVersion, label);
+    return ("[%s]"):format(label);
 end
 
 local pendingLinks = {};
@@ -165,13 +227,10 @@ local function handleItemRef(link)
         return true;
     end
 
-    if sender ~= "" and sender ~= (Globals.player_id or Globals.player) then
+    if sender ~= "" and normalizeName(sender) ~= normalizeName(Globals.player_id or Globals.player or UnitName("player")) then
         pendingLinks[rootID] = pendingLinks[rootID] or {};
         pendingLinks[rootID][fullID] = true;
-        Comm.sendObject(LINK_REQUEST, {
-            rootID = rootID,
-            v = getVersion(rootID),
-        }, sender, "NORMAL");
+        Comm.sendObject(LINK_REQUEST, { rootID = rootID, v = getVersion(rootID) }, sender, "NORMAL");
         Utils.message.displayMessage("Requesting Extended item data from " .. sender .. "...");
     else
         Utils.message.displayMessage("This Extended item is not available locally.");
@@ -179,35 +238,52 @@ local function handleItemRef(link)
     return true;
 end
 
--- Convert safe transport tokens into local clickable hyperlinks only after the
--- server has accepted and delivered the chat message.
-local function chatTokenFilter(self, event, message, author, ...)
-    if type(message) ~= "string" or not message:find("<TRP3X:", 1, true) then
-        return false, message, author, ...;
-    end
+-- Receive the hidden metadata advertisement used only for supported private /
+-- group chat types. It contains no executable object data, just ID/version/name.
+local advertFrame = CreateFrame("Frame", "TRP3X_ItemLinkAdvertFrame");
+advertFrame:RegisterEvent("CHAT_MSG_ADDON");
+advertFrame:SetScript("OnEvent", function(self, event, prefix, message, channel, sender)
+    if prefix ~= LINK_ADVERT_PREFIX or type(message) ~= "string" then return; end
+    local idHex, version, labelHex = message:match("^([0-9A-Fa-f]+):(%d+):([0-9A-Fa-f]+)$");
+    if not idHex then return; end
+    local fullID, label = hexDecode(idHex), hexDecode(labelHex);
+    if fullID and label then cacheAdvert(sender, fullID, tonumber(version) or 0, label); end
+end);
+
+local function chatAdvertFilter(self, event, message, author, ...)
+    if type(message) ~= "string" then return false, message, author, ...; end
     local sender = author or "";
-    if event == "CHAT_MSG_WHISPER_INFORM" or event == "CHAT_MSG_BN_WHISPER_INFORM" then
-        sender = Globals.player_id or Globals.player or UnitName("player") or sender;
+    if event == "CHAT_MSG_WHISPER_INFORM" then
+        sender = UnitName("player") or Globals.player_id or Globals.player or sender;
     end
-    local replaced = message:gsub("%[([^%]]-)%]<TRP3X:([0-9A-Fa-f]+):(%d+)>", function(label, encodedID, version)
-        local fullID = hexDecode(encodedID);
-        if not fullID then return "[" .. label .. "]"; end
-        return makeLocalHyperlink(fullID, sender, version, label);
-    end);
-    return false, replaced, author, ...;
+    local key = normalizeName(sender);
+    local list = advertisedLinks[key];
+    if not list then return false, message, author, ...; end
+
+    local now = GetTime and GetTime() or 0;
+    for i = #list, 1, -1 do
+        if list[i].expires < now then table.remove(list, i); end
+    end
+    for i, advert in ipairs(list) do
+        local token = "[" .. advert.label .. "]";
+        local startPos, endPos = string.find(message, token, 1, true);
+        if startPos then
+            local replacement = makeLocalHyperlink(advert.fullID, sender, advert.version, advert.label);
+            message = string.sub(message, 1, startPos - 1) .. replacement .. string.sub(message, endPos + 1);
+            table.remove(list, i);
+            break;
+        end
+    end
+    return false, message, author, ...;
 end
 
 if ChatFrame_AddMessageEventFilter and not TRP3X_WOTLK.itemLinkChatFilterInstalled then
     TRP3X_WOTLK.itemLinkChatFilterInstalled = true;
     local events = {
-        "CHAT_MSG_SAY", "CHAT_MSG_YELL", "CHAT_MSG_EMOTE", "CHAT_MSG_TEXT_EMOTE",
-        "CHAT_MSG_PARTY", "CHAT_MSG_PARTY_LEADER", "CHAT_MSG_RAID", "CHAT_MSG_RAID_LEADER",
-        "CHAT_MSG_GUILD", "CHAT_MSG_OFFICER", "CHAT_MSG_WHISPER", "CHAT_MSG_WHISPER_INFORM",
-        "CHAT_MSG_CHANNEL", "CHAT_MSG_BATTLEGROUND", "CHAT_MSG_BATTLEGROUND_LEADER",
+        "CHAT_MSG_PARTY", "CHAT_MSG_RAID", "CHAT_MSG_GUILD", "CHAT_MSG_OFFICER",
+        "CHAT_MSG_WHISPER", "CHAT_MSG_WHISPER_INFORM", "CHAT_MSG_BATTLEGROUND",
     };
-    for _, event in ipairs(events) do
-        pcall(ChatFrame_AddMessageEventFilter, event, chatTokenFilter);
-    end
+    for _, event in ipairs(events) do pcall(ChatFrame_AddMessageEventFilter, event, chatAdvertFilter); end
 end
 
 -- Chat hyperlink clicks are routed through SetItemRef on the 3.3.5 client.

@@ -6,10 +6,10 @@
 --------------------------------------------------------------------------------
 
 TRP3X_WOTLK = TRP3X_WOTLK or {};
-TRP3X_WOTLK.alpha = "15";
+TRP3X_WOTLK.alpha = "16";
 -- The stock WotLK TRP3 toolbar crashes when an addon registers its first button
 -- because toolbar.lua assumes GetPushedTexture() is non-nil. Keep the public
--- base addon untouched; Alpha 15 keeps the Extended buttons on a small
+-- base addon untouched; Alpha 16 keeps the Extended buttons on a small
 -- compatibility action bar instead of feeding them into the broken stock bar.
 TRP3X_WOTLK.disableStockToolbarIntegration = true;
 
@@ -1077,12 +1077,21 @@ API.popup.showPopup = function(popupID, anchor, args)
         if oldHidePopups then oldHidePopups(); end
         entry.frame:Show();
         if entry.frame.SetFrameStrata then entry.frame:SetFrameStrata("DIALOG"); end
-        if anchor and anchor.parent then
-            entry.frame:ClearAllPoints();
+        entry.frame:ClearAllPoints();
+        if popupID == API.popup.OBJECTS then
+            -- The historical Create-From anchor can place this 450px browser
+            -- beyond the right edge on 4:3 / low-resolution Wrath clients.
+            entry.frame:SetParent(UIParent);
+            if entry.frame.SetClampedToScreen then entry.frame:SetClampedToScreen(true); end
+            entry.frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
+            if entry.frame.SetFrameLevel then entry.frame:SetFrameLevel(100); end
+        elseif anchor and anchor.parent then
             entry.frame:SetPoint(anchor.point or "CENTER", anchor.parent, anchor.parentPoint or "CENTER", anchor.x or 0, anchor.y or 0);
             if entry.frame.SetFrameLevel and anchor.parent.GetFrameLevel then
                 entry.frame:SetFrameLevel(anchor.parent:GetFrameLevel() + 20);
             end
+        else
+            entry.frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
         end
         if entry.showMethod then return entry.showMethod(unpack(args)); end
     end
@@ -1127,6 +1136,11 @@ function NavBar_AddButton(nav, data)
     local index = #buttons + 1;
     local button = CreateFrame("Button", (nav:GetName() or "TRP3XNav") .. "Button" .. index, nav, nav._trp3xTemplate or "TRP3X_NavButtonTemplate");
     button.data = data;
+    if data then
+        -- Later NavBar buttons copy payload fields directly onto the widget.
+        -- Quest log callbacks read button.id/button.name rather than .data.
+        for key, value in pairs(data) do button[key] = value; end
+    end
     button:SetText((data and data.name) or "?");
     button:SetScript("OnClick", data and data.OnClick or nil);
     if index == 1 then

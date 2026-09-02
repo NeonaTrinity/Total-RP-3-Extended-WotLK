@@ -23,21 +23,22 @@ local loc = TRP3_API.locale.getText;
 -- Wrath's CreateMacro expects an icon INDEX, while Extended 1.0.7 passes an
 -- icon texture name. Resolve the requested texture through the pre-4.3 macro
 -- icon API and fall back to the first macro icon when it is unavailable.
-local function getWotLKMacroIconIndex(iconName)
+local function getWotLKMacroIconIndex(iconName, fallbackName)
 	if type(iconName) == "number" then return iconName; end
-	local wanted = tostring(iconName or ""):lower();
-	wanted = wanted:gsub("^interface\\icons\\", "");
-	if GetNumMacroIcons and GetMacroIconInfo then
-		local count = GetNumMacroIcons() or 0;
-		for i = 1, count do
-			local texture = GetMacroIconInfo(i);
-			if texture then
-				local normalized = tostring(texture):lower():gsub("^interface\\icons\\", "");
-				if normalized == wanted then return i; end
+	local function findIcon(name)
+		local wanted = tostring(name or ""):lower():gsub("^interface\\icons\\", "");
+		if GetNumMacroIcons and GetMacroIconInfo then
+			local count = GetNumMacroIcons() or 0;
+			for i = 1, count do
+				local texture = GetMacroIconInfo(i);
+				if texture then
+					local normalized = tostring(texture):lower():gsub("^interface\\icons\\", "");
+					if normalized == wanted then return i; end
+				end
 			end
 		end
 	end
-	return 1;
+	return findIcon(iconName) or findIcon(fallbackName) or 1;
 end
 local EMPTY = TRP3_API.globals.empty;
 local Log = Utils.log;
@@ -66,6 +67,13 @@ local function onCampaignActionSelected(value, button)
 	elseif value == 2 then
 		TRP3_API.quest.activateCampaign(button.campaignID);
 		refreshCampaignList();
+	elseif value == 3 then
+		local campaignID = button.campaignID;
+		local _, campaignName = getClassDataSafe(getClass(campaignID));
+		TRP3_API.popup.showConfirmPopup(("Delete campaign '%s' from your Extended database?\n\n%s"):format(campaignName or campaignID, campaignID), function()
+			TRP3_API.extended.removeObjectByFullID(campaignID);
+			goToPage(false, TAB_CAMPAIGNS);
+		end);
 	end
 end
 
@@ -80,11 +88,14 @@ local function onCampaignButtonClick(button, mouseButton)
 		tinsert(values, {campaignName});
 		tinsert(values, {loc("QE_CAMPAIGN_RESET"), 1});
 		tinsert(values, {loc("QE_CAMPAIGN_START_BUTTON"), 2});
+		if TRP3_API.extended.isObjectMine and TRP3_API.extended.isObjectMine(campaignID) then
+			tinsert(values, {DELETE or "Delete", 3, "Delete this campaign object from your Extended database."});
+		end
 		TRP3_API.ui.listbox.displayDropDown(button, values, onCampaignActionSelected, 0, true);
 	end
 end
 
-local BASE_BKG = "Interface\\QuestionFrame\\question-background";
+local BASE_BKG = (TRP3_API.ui.frame.getTiledBackground and TRP3_API.ui.frame.getTiledBackground(7)) or "Interface\\QuestionFrame\\question-background";
 local DEFAULT_CAMPAIGN_IMAGE = "GarrZoneAbility-Stables";
 
 
@@ -226,9 +237,9 @@ local function decorateQuestButton(questFrame, campaignID, questID, questInfo, q
 
 	TRP3_API.ui.frame.setupIconButton(questFrame, questIcon);
 	questFrame.Name:SetText(questName);
-	questFrame.Name:SetTextColor(0.2824, 0.0157, 0.0157);
+	questFrame.Name:SetTextColor(0.08, 0.05, 0.02);
 	questFrame.InfoText:SetText(questDescription);
-	questFrame.InfoText:SetTextColor(0.3824, 0.1157, 0.1157);
+	questFrame.InfoText:SetTextColor(0.12, 0.08, 0.04);
 	questFrame.Completed:Hide();
 	if questInfo.FI == true then
 		questFrame.Completed:Show();
@@ -422,7 +433,7 @@ local function initStepFrame()
 	end);
 
 	stepHTML:SetFontObject("p", GameTooltipHeader);
-	stepHTML:SetTextColor("p", 0.2824, 0.0157, 0.0157);
+	stepHTML:SetTextColor("p", 0.08, 0.05, 0.02);
 	stepHTML:SetShadowOffset("p", 0, 0)
 
 	stepHTML:SetFontObject("h1", DestinyFontHuge);
@@ -664,7 +675,7 @@ local function init()
 			if GetNumMacros() <= 120 then
 				if action == TRP3_API.quest.ACTION_TYPES.LISTEN then
 					if GetMacroIndexByName("TRP3_Listen") == 0 then
-						CreateMacro("TRP3_Listen", getWotLKMacroIconIndex(TRP3_API.quest.getActionTypeIcon(TRP3_API.quest.ACTION_TYPES.LISTEN)), "/script TRP3_API.quest.listen();", true);
+						CreateMacro("TRP3_Listen", getWotLKMacroIconIndex(TRP3_API.quest.getActionTypeIcon(TRP3_API.quest.ACTION_TYPES.LISTEN), "Spell_Holy_Silence"), "/script TRP3_API.quest.listen();", true);
 					end
 					PickupMacro("TRP3_Listen");
 				elseif action == TRP3_API.quest.ACTION_TYPES.LOOK then
@@ -679,7 +690,7 @@ local function init()
 					PickupMacro("TRP3_Interract");
 				elseif action == TRP3_API.quest.ACTION_TYPES.TALK then
 					if GetMacroIndexByName("TRP3_Talk") == 0 then
-						CreateMacro("TRP3_Talk", getWotLKMacroIconIndex(TRP3_API.quest.getActionTypeIcon(TRP3_API.quest.ACTION_TYPES.TALK)), "/script TRP3_API.quest.talk();", true);
+						CreateMacro("TRP3_Talk", getWotLKMacroIconIndex(TRP3_API.quest.getActionTypeIcon(TRP3_API.quest.ACTION_TYPES.TALK), "Ability_Warrior_BattleShout"), "/script TRP3_API.quest.talk();", true);
 					end
 					PickupMacro("TRP3_Talk");
 				end

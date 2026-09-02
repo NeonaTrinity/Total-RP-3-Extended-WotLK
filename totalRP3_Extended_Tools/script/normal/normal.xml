@@ -404,6 +404,9 @@
 				</Backdrop>
 
 				<Frames>
+					<Button parentKey="close" inherits="UIPanelCloseButton" name="$parentClose" frameLevel="50">
+						<Anchors><Anchor point="TOPRIGHT" x="-4" y="-4"/></Anchors>
+					</Button>
 					<Frame parentKey="selector" inherits="TRP3_EditorEffectTemplate" hidden="true" name="$parentselector">
 						<Size x="500" y="250"/>
 						<Frames>

@@ -141,7 +141,7 @@
 			</Frame>
 
 			<Frame parentKey="Chat" frameLevel="4" name="$parentChat">
-				<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+				<Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
 					<EdgeSize>
 						<AbsValue val="16"/>
 					</EdgeSize>
@@ -153,6 +153,9 @@
 					</BackgroundInsets>
 				</Backdrop>
 				<Size x="0" y="150"/>
+				<Scripts>
+					<OnLoad>if self.SetBackdropColor then self:SetBackdropColor(0.88, 0.72, 0.48, 0.96); end</OnLoad>
+				</Scripts>
 				<Anchors>
 					<Anchor point="BOTTOM" x="0" y="25"/>
 					<Anchor point="LEFT" x="30" y="0"/>
@@ -164,13 +167,13 @@
 							<Anchors>
 								<Anchor point="TOPLEFT" x="20" y="-20"/>
 							</Anchors>
-							<Color r="1" g="1" b="0.4"/>
+							<Color r="0.08" g="0.05" b="0.02"/>
 						</FontString>
 						<FontString parentKey="Next" text="[NEXT]" inherits="GameFontNormalSmall" justifyH="RIGHT" justifyV="BOTTOM" name="$parentNext">
 							<Anchors>
 								<Anchor point="BOTTOM" x="0" y="17"/>
 							</Anchors>
-							<Color r="1" g="1" b="0.4"/>
+							<Color r="0.08" g="0.05" b="0.02"/>
 						</FontString>
 					</Layer>
 				</Layers>

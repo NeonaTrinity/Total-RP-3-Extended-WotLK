@@ -80,7 +80,18 @@ function TRP3_API.extended.checkID(ID)
 end
 
 local function getFullID(...)
-	return strtrim(strjoin(ID_SEPARATOR, ...));
+	-- API-11/Wrath strjoin errors when any argument is nil. Later TRP3 callers
+	-- sometimes pass an empty breadcrumb/page component, so build the path
+	-- defensively and ignore nil/empty pieces.
+	local parts = {};
+	for i = 1, select("#", ...) do
+		local value = select(i, ...);
+		if value ~= nil then
+			value = tostring(value);
+			if value ~= "" then tinsert(parts, value); end
+		end
+	end
+	return strtrim(table.concat(parts, ID_SEPARATOR));
 end
 TRP3_API.extended.getFullID = getFullID;
 
@@ -190,6 +201,19 @@ end
 TRP3_API.extended.unregisterObject = unregisterObject;
 
 local function removeObject(objectFullID)
+	local removedClass = TRP3_DB.global[objectFullID] or TRP3_Tools_DB[objectFullID] or TRP3_DB.exchange[objectFullID];
+	-- If a user-owned campaign is deleted, also discard its local quest-log
+	-- progress and deactivate it. Otherwise a removed campaign can leave a
+	-- stale currentCampaign pointer until reload.
+	if removedClass and removedClass.TY == TRP3_DB.types.CAMPAIGN and TRP3_API.quest and TRP3_API.quest.getQuestLog then
+		local questLog = TRP3_API.quest.getQuestLog();
+		if questLog then
+			if questLog.currentCampaign == objectFullID and TRP3_API.quest.deactivateCurrentCampaign then
+				TRP3_API.quest.deactivateCurrentCampaign(true);
+			end
+			questLog[objectFullID] = nil;
+		end
+	end
 	unregisterObject(objectFullID);
 	if TRP3_DB.exchange[objectFullID] then
 		wipe(TRP3_DB.exchange[objectFullID]);
@@ -205,6 +229,48 @@ local function removeObject(objectFullID)
 	TRP3_API.events.fireEvent(TRP3_API.quest.EVENT_REFRESH_CAMPAIGN);
 end
 TRP3_API.extended.removeObject = removeObject;
+
+-- Remove a root OR a nested Extended object (campaign quest/step/inner object).
+-- The original database browser only exposed root deletion, although the
+-- editors themselves can create nested structures. This helper mutates the
+-- owning root object, rebuilds the flattened registry and refreshes consumers.
+local function removeObjectByFullID(objectFullID)
+	if not objectFullID or objectFullID == "" then return false; end
+	if not objectFullID:find(ID_SEPARATOR, 1, true) then
+		removeObject(objectFullID);
+		return true;
+	end
+
+	local parts = {strsplit(ID_SEPARATOR, objectFullID)};
+	local rootID = parts[1];
+	local source = TRP3_Tools_DB[rootID] or TRP3_DB.exchange[rootID];
+	if not source then return false; end
+
+	local node = source;
+	for i = 2, #parts do
+		local childID = parts[i];
+		local bucket;
+		if node.IN and node.IN[childID] then bucket = node.IN;
+		elseif node.QE and node.QE[childID] then bucket = node.QE;
+		elseif node.ST and node.ST[childID] then bucket = node.ST;
+		else return false; end
+
+		if i == #parts then
+			wipe(bucket[childID]);
+			bucket[childID] = nil;
+		else
+			node = bucket[childID];
+		end
+	end
+
+	unregisterObject(rootID);
+	registerObject(rootID, source, 0);
+	Log.log("Removed nested object: " .. objectFullID);
+	TRP3_API.events.fireEvent(TRP3_API.inventory.EVENT_REFRESH_BAG);
+	TRP3_API.events.fireEvent(TRP3_API.quest.EVENT_REFRESH_CAMPAIGN, rootID);
+	return true;
+end
+TRP3_API.extended.removeObjectByFullID = removeObjectByFullID;
 
 local function iterateObject(objectID, object, callback)
 	callback(objectID, object);

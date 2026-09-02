@@ -278,6 +278,25 @@ function refresh()
 	else
 		ToolFrame.list.container.Empty:Hide();
 	end
+
+	-- The custom Wrath ScrollFrame shim does not auto-size its scroll child.
+	-- Give the database list a real content height and bind its visible scrollbar.
+	local scroll = ToolFrame.list.container.scroll;
+	if scroll and scroll.child then
+		local contentHeight = math.max(100, (#idData * LINE_TOP_MARGIN) + 20);
+		scroll.child:SetHeight(contentHeight);
+		local bar = scroll.ScrollBar;
+		if bar then
+			local viewport = scroll:GetHeight() or 100;
+			local maxScroll = math.max(0, contentHeight - viewport);
+			bar:SetMinMaxValues(0, maxScroll);
+			bar:SetValueStep(LINE_TOP_MARGIN);
+			bar:SetScript("OnValueChanged", function(self, value)
+				scroll:SetVerticalScroll(value or 0);
+			end);
+			if maxScroll > 0 then bar:Show(); else bar:SetValue(0); bar:Hide(); end
+		end
+	end
 end
 
 local function checkOwner(owner, rootClass)
@@ -468,7 +487,7 @@ function onLineActionSelected(value, button)
 	if action == ACTION_FLAG_DELETE then
 		local _, name, _ = TRP3_API.extended.tools.getClassDataSafeByType(getClass(objectID));
 		TRP3_API.popup.showConfirmPopup(loc("DB_REMOVE_OBJECT_POPUP"):format(objectID, name or UNKNOWN), function()
-			TRP3_API.extended.removeObject(objectID);
+			TRP3_API.extended.removeObjectByFullID(objectID);
 			onTabChanged(nil, currentTab);
 		end);
 	elseif action == ACTION_FLAG_ADD then
@@ -523,9 +542,12 @@ end
 function onLineRightClick(lineWidget, data)
 	local values = {};
 	tinsert(values, {data.text, nil});
-	if (TRP3_API.extended.isObjectMine(data.rootID) or TRP3_API.extended.isObjectExchanged(data.rootID)) and not data.fullID:find(TRP3_API.extended.ID_SEPARATOR) then
+	if TRP3_API.extended.isObjectMine(data.rootID) or TRP3_API.extended.isObjectExchanged(data.rootID) then
+		-- Alpha 16: nested quests/steps/inner objects can be deleted too.
 		tinsert(values, {DELETE, ACTION_FLAG_DELETE .. data.fullID, loc("DB_DELETE_TT")});
-		tinsert(values, {loc("SEC_LEVEL_DETAILS"), ACTION_FLAG_SECURITY .. data.rootID, loc("DB_SECURITY_TT")});
+		if not data.fullID:find(TRP3_API.extended.ID_SEPARATOR) then
+			tinsert(values, {loc("SEC_LEVEL_DETAILS"), ACTION_FLAG_SECURITY .. data.rootID, loc("DB_SECURITY_TT")});
+		end
 	end
 	if data.type == TRP3_DB.types.ITEM then
 		local class = getClass(data.fullID);

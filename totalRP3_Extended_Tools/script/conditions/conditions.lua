@@ -424,7 +424,7 @@ local function decorateConditionLine(line, index)
 		line.text:SetText("|cffff9900" .. ((index + 1) / 2) .. ".  " .. getExpressionText(expression));
 		local tooltip = getTTAction(loc("CM_CLICK"), loc("CM_EDIT")) .. getTTAction(loc("CM_CTRL") .. " + " .. loc("CM_CLICK"), loc("CA_NPC_AS"), true);
 		if #editor.scriptData > 1 then
-			tooltip = tooltip .. getTTAction(loc("CM_M_CLICK"), loc("CM_REMOVE"), true);
+			tooltip = tooltip .. getTTAction("Middle-click", loc("CM_REMOVE"), true);
 		end
 		setTooltipForSameFrame(line.click, "RIGHT", 0, 5, loc("COND_TEST_EDITOR"), tooltip);
 	end

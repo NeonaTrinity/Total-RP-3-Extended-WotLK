@@ -656,8 +656,15 @@ local function performAction(actionType)
 		return;
 	end
 
-	-- If we get here: no action have been found
+	-- If we get here: no scripted action has been found. For LOOK, still expose
+	-- the custom campaign NPC description so authors can use NPC flavour text
+	-- without creating a workflow just to read it.
 	if actionType == ACTION_TYPES.LOOK then
+		local npcData = TRP3_API.quest.GetCampaignNPCData and TRP3_API.quest.GetCampaignNPCData("target");
+		if npcData and ((npcData.NA or "") ~= "" or (npcData.DE or "") ~= "") then
+			Utils.message.displayMessage(("|cff00ff00%s|r%s"):format(npcData.NA or UnitName("target") or loc("QE_NPC"), (npcData.DE and npcData.DE ~= "") and (": " .. npcData.DE) or ""), 4);
+			return;
+		end
 		Utils.message.displayMessage(loc("QE_NOACTION_LOOK"), 4);
 	elseif actionType == ACTION_TYPES.LISTEN then
 		Utils.message.displayMessage(loc("QE_NOACTION_LISTEN"), 4);

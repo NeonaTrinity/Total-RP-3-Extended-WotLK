@@ -144,7 +144,7 @@
 					<Anchors>
 						<Anchor point="CENTER" relativeTo="$parentbanner" x="0" y="18"/>
 					</Anchors>
-					<Color r="0.2824" g="0.0157" b="0.0157"/>
+					<Color r="0.08" g="0.05" b="0.02"/>
 				</FontString>
 
 				<FontString name="$parentRange" inherits="GameFontNormal" justifyH="CENTER" parentKey="range" text="[LVL]">
@@ -265,7 +265,7 @@
 					<Anchors>
 						<Anchor point="CENTER" relativeTo="$parentbanner" x="0" y="18"/>
 					</Anchors>
-					<Color r="0.2824" g="0.0157" b="0.0157"/>
+					<Color r="0.08" g="0.05" b="0.02"/>
 				</FontString>
 
 				<FontString name="$parentRange" font="SystemFont_Med1" justifyH="LEFT" parentKey="range" text="[LVL]">
@@ -273,7 +273,7 @@
 					<Anchors>
 						<Anchor point="TOPLEFT" x="30" y="-25"/>
 					</Anchors>
-					<Color r="0.2824" g="0.0157" b="0.0157"/>
+					<Color r="0.08" g="0.05" b="0.02"/>
 				</FontString>
 
 				<FontString font="SystemFont_Med1" justifyH="LEFT" justifyV="TOP" wordwrap="true" parentKey="Desc" name="$parentDesc">
@@ -283,7 +283,7 @@
 						<Anchor point="RIGHT" x="-35" y="0"/>
 						<Anchor point="LEFT" x="35" y="0"/>
 					</Anchors>
-					<Color r="0.2824" g="0.0157" b="0.0157"/>
+					<Color r="0.08" g="0.05" b="0.02"/>
 				</FontString>
 			</Layer>
 		</Layers>
@@ -323,7 +323,7 @@
 						<Anchor point="LEFT" x="35" y="0"/>
 						<Anchor point="BOTTOM" x="0" y="10"/>
 					</Anchors>
-					<Color r="0.2824" g="0.0157" b="0.0157"/>
+					<Color r="0.08" g="0.05" b="0.02"/>
 				</FontString>
 			</Layer>
 		</Layers>
@@ -379,7 +379,7 @@
 											<Anchors>
 												<Anchor point="TOPLEFT" x="30" y="0"/>
 											</Anchors>
-											<Color r="0.2824" g="0.0157" b="0.0157"/>
+											<Color r="0.08" g="0.05" b="0.02"/>
 										</FontString>
 									</Layer>
 								</Layers>

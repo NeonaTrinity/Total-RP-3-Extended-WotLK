@@ -262,15 +262,17 @@ function TRP3_API.extended.tools.initItemQuickEditor(ToolFrame)
 	toolFrame.list.bottom.campaign.templates.from.Name:SetText(loc("DB_CREATE_CAMPAIGN_TEMPLATES_FROM"));
 	toolFrame.list.bottom.campaign.templates.from.InfoText:SetText(loc("DB_CREATE_CAMPAIGN_TEMPLATES_FROM_TT"));
 
-	TRP3_API.ui.frame.setupIconButton(toolFrame.list.bottom.item.templates.container, "inv_misc_bag_36");
-	TRP3_API.ui.frame.setupIconButton(toolFrame.list.bottom.item.templates.blank, "inv_inscription_scroll");
-	TRP3_API.ui.frame.setupIconButton(toolFrame.list.bottom.item.templates.document, "inv_misc_book_16");
-	TRP3_API.ui.frame.setupIconButton(toolFrame.list.bottom.item.templates.quick, "petbattle_speed");
-	TRP3_API.ui.frame.setupIconButton(toolFrame.list.bottom.item.templates.from, "spell_nature_mirrorimage");
-	TRP3_API.ui.frame.setupIconButton(toolFrame.list.bottom.item, "inv_garrison_blueprints1");
+	-- Use icons known to exist in the 3.3.5 icon catalogue. Several original
+	-- 1.0.7 choices (Pet Battle / Garrison art) post-date Wrath.
+	TRP3_API.ui.frame.setupIconButton(toolFrame.list.bottom.item.templates.container, "INV_Misc_Bag_10");
+	TRP3_API.ui.frame.setupIconButton(toolFrame.list.bottom.item.templates.blank, "INV_Inscription_Scroll");
+	TRP3_API.ui.frame.setupIconButton(toolFrame.list.bottom.item.templates.document, "INV_Letter_15");
+	TRP3_API.ui.frame.setupIconButton(toolFrame.list.bottom.item.templates.quick, "INV_Misc_Gear_01");
+	TRP3_API.ui.frame.setupIconButton(toolFrame.list.bottom.item.templates.from, "Spell_Nature_MirrorImage");
+	TRP3_API.ui.frame.setupIconButton(toolFrame.list.bottom.item, "INV_Misc_Bag_08");
 
-	TRP3_API.ui.frame.setupIconButton(toolFrame.list.bottom.campaign.templates.blank, "inv_inscription_scroll");
-	TRP3_API.ui.frame.setupIconButton(toolFrame.list.bottom.campaign.templates.from, "spell_nature_mirrorimage");
+	TRP3_API.ui.frame.setupIconButton(toolFrame.list.bottom.campaign.templates.blank, "INV_Misc_Book_09");
+	TRP3_API.ui.frame.setupIconButton(toolFrame.list.bottom.campaign.templates.from, "Spell_Nature_MirrorImage");
 
 	toolFrame.list.bottom.item:SetScript("OnClick", function(self)
 		if TRP3_ItemQuickEditor:IsVisible() then
@@ -361,7 +363,7 @@ function TRP3_API.extended.tools.initItemQuickEditor(ToolFrame)
 				SB = Globals.player_id,
 			};
 			TRP3_API.extended.tools.replaceID(copiedData, fromID, id);
-			local ID, _ = TRP3_API.extended.tools.createItem(copiedData, id);
+			local ID, _ = TRP3_API.extended.tools.createCampaign(copiedData, id);
 			TRP3_API.extended.tools.goToPage(ID);
 		end, TRP3_DB.types.CAMPAIGN});
 

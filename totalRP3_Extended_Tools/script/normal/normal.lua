@@ -236,9 +236,9 @@ local function removeEffectCondition(scriptStep)
 end
 
 editor.list.listElement = {};
-local ELEMENT_DELAY_ICON = "spell_mage_altertime";
-local ELEMENT_EFFECT_ICON = "inv_misc_enggizmos_37";
-local ELEMENT_CONDITION_ICON = "Ability_druid_balanceofpower";
+local ELEMENT_DELAY_ICON = "INV_Misc_PocketWatch_01";
+local ELEMENT_EFFECT_ICON = "INV_Misc_Gear_01";
+local ELEMENT_CONDITION_ICON = "Spell_Holy_SealOfWisdom";
 local ELEMENT_LINE_ACTION_COPY = "ELEMENT_LINE_ACTION_COPY";
 local ELEMENT_LINE_ACTION_PASTE = "ELEMENT_LINE_ACTION_PASTE";
 local ELEMENT_LINE_ACTION_COND = "ELEMENT_LINE_ACTION_COND";
@@ -777,7 +777,17 @@ editor.init = function(ToolFrame, effectMenu)
 	editor.element.selector.delay:SetScript("OnClick", addDelayElement);
 	editor.element.selector.effect:SetScript("OnClick", displayEffectDropdown);
 
-	editor:SetScript("OnHide", function() editor.element:Hide(); unlockElements(); end);
+	editor.element.close:SetScript("OnClick", function()
+		if editor.element.current then editor.element.current:Hide(); end
+		editor.element:Hide();
+		unlockElements();
+	end);
+	editor:SetScript("OnHide", function()
+		if editor.element.current then editor.element.current:Hide(); end
+		editor.element:Hide();
+		if editor.overlay then editor.overlay:Hide(); end
+		unlockElements();
+	end);
 
 	-- Tutorial
 	local TUTORIAL = {

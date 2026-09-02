@@ -98,6 +98,22 @@ end
 -- Level 2: Operands level
 --*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
+local function bindOperandListChildren(list)
+	if not list or not list.GetName then return; end
+	local name = list:GetName();
+	if not name then return; end
+	list.args = list.args or _G[name .. "Args"];
+	list.edit = list.edit or _G[name .. "edit"] or _G[name .. "Edit"];
+	list.preview = list.preview or _G[name .. "preview"] or _G[name .. "Preview"];
+	if list.args then
+		local argsName = list.args:GetName();
+		if argsName then
+			list.args.title = list.args.title or _G[argsName .. "title"] or _G[argsName .. "Title"];
+			list.args.confirm = list.args.confirm or _G[argsName .. "confirm"] or _G[argsName .. "Confirm"];
+		end
+	end
+end
+
 local function fillExpression(tab)
 	wipe(tab);
 
@@ -620,9 +636,12 @@ function editor.init()
 		{getComparatorText(">"), ">"},
 		{getComparatorText(">="), ">="},
 	}
-	TRP3_API.ui.listbox.setupListBox(operandEditor.comparator, comparatorStructure, checkNumeric, nil, 175, true);
+	bindOperandListChildren(operandEditor.left);
+	bindOperandListChildren(operandEditor.right);
 
-	TRP3_API.ui.listbox.setupListBox(operandEditor.left, getEvaluatedOperands(leftListStructure), function(operandID, list)
+	TRP3X_WOTLK.setupListBox(operandEditor.comparator, comparatorStructure, checkNumeric, nil, 175, true);
+
+	TRP3X_WOTLK.setupListBox(operandEditor.left, getEvaluatedOperands(leftListStructure), function(operandID, list)
 		list.argsData = nil;
 		onOperandSelected(operandID, list, true);
 	end, nil, 220, true);
@@ -648,7 +667,7 @@ function editor.init()
 			}},
 		}},
 	}
-	TRP3_API.ui.listbox.setupListBox(operandEditor.right, rightStructure, function(operandID, list)
+	TRP3X_WOTLK.setupListBox(operandEditor.right, rightStructure, function(operandID, list)
 		list.argsData = nil;
 		onOperandSelected(operandID, list, true);
 	end, nil, 220, true);

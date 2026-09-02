@@ -285,10 +285,10 @@ function TRP3_API.extended.tools.initDocumentEditorNormal(ToolFrame)
 	params = toolFrame.document.normal.params;
 
 	-- Background
-	TRP3_API.ui.listbox.setupListBox(params.background, TRP3_API.ui.frame.getTiledBackgroundList(), nil, nil, 205, true);
+	TRP3X_WOTLK.setupListBox(params.background, TRP3_API.ui.frame.getTiledBackgroundList(), nil, nil, 205, true);
 
 	-- Border
-	TRP3_API.ui.listbox.setupListBox(params.border, {
+	TRP3X_WOTLK.setupListBox(params.border, {
 		{TRP3_API.formats.dropDownElements:format(loc("DO_PAGE_BORDER"), loc("DO_PAGE_BORDER_1")), TRP3_API.extended.document.BorderType.PARCHMENT},
 	}, nil, nil, 205, true);
 
@@ -318,16 +318,16 @@ function TRP3_API.extended.tools.initDocumentEditorNormal(ToolFrame)
 	end
 
 	-- H1
-	TRP3_API.ui.listbox.setupListBox(params.h1_font, getFontStructure("H1"), nil, nil, 205, true);
+	TRP3X_WOTLK.setupListBox(params.h1_font, getFontStructure("H1"), nil, nil, 205, true);
 
 	-- H2
-	TRP3_API.ui.listbox.setupListBox(params.h2_font, getFontStructure("H2"), nil, nil, 205, true);
+	TRP3X_WOTLK.setupListBox(params.h2_font, getFontStructure("H2"), nil, nil, 205, true);
 
 	-- H3
-	TRP3_API.ui.listbox.setupListBox(params.h3_font, getFontStructure("H3"), nil, nil, 205, true);
+	TRP3X_WOTLK.setupListBox(params.h3_font, getFontStructure("H3"), nil, nil, 205, true);
 
 	-- P
-	TRP3_API.ui.listbox.setupListBox(params.p_font, getFontStructure("P"), nil, nil, 205, true);
+	TRP3X_WOTLK.setupListBox(params.p_font, getFontStructure("P"), nil, nil, 205, true);
 
 	-- Pages
 	pages = toolFrame.document.normal.pages;

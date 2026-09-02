@@ -133,9 +133,9 @@ local function onUpdateChatText(self, elapsed)
 		self.start = self.start + (elapsed * (ANIMATION_TEXT_SPEED * speedFactor));
 		if speedFactor == 0 or self.start >= dialogFrame.Chat.Text:GetText():len() then
 			self.start = nil;
-			dialogFrame.Chat.Text:SetAlphaGradient(dialogFrame.Chat.Text:GetText():len(), 1);
+			TRP3X_WOTLK.setAlphaGradient(dialogFrame.Chat.Text, dialogFrame.Chat.Text:GetText():len(), 1);
 		else
-			dialogFrame.Chat.Text:SetAlphaGradient(self.start, 30);
+			TRP3X_WOTLK.setAlphaGradient(dialogFrame.Chat.Text, self.start, 30);
 		end
 	end
 	if dialogFrame.distanceLimit > 0 then

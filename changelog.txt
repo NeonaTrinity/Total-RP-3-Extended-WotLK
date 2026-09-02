@@ -1,3 +1,21 @@
+Alpha 17:
+- Removes permanent campaign deletion from Quest Log. Destructive deletion stays in Tools/database management.
+- Widens/spaces database tabs and truncates overflowing labels with ...; hover shows full text.
+- Fixes condition operand Args/Edit/Preview child aliases lost by Wrath nested parentKey handling.
+- Routes Extended Tools listboxes through an API-34 compatibility helper so menu width no longer becomes a huge horizontal popup offset.
+- Guards later dialogue alpha-gradient and sound-history hyperlink widget methods.
+- Restores the original 1.0.7 totalRP3_Extended_ImpExport companion addon.
+
+Known reduced/deferred 1.0.7 areas found by the compatibility audit:
+- TRP-Anim-DB is absent from the supplied archive; dialogue/cutscene model scaling, paired-model placement and exact animation timing still use fallbacks.
+- Encounter Journal instance lookup has no Wrath equivalent and uses a neutral fallback.
+- Mount/companion journal APIs are emulated over Wrath companions; editor behavior is less complete.
+- The later companion-browser popup is not present on the WotLK base.
+- UnitPosition is approximated from Wrath map coordinates for Extended location/distance logic.
+- Workflow/effect/condition logic is present from 1.0.7; the largest remaining work is adapting API-34 frame layouts and later client APIs, then live-testing each effect/operand.
+
+Install all three Alpha 17 Extended folders if you want full 1.0.7 import/export support. Do not edit totalRP3 or totalRP3_Data.
+
 
 Alpha 16 focus:
 - Campaign/quest breadcrumb payload compatibility and safer ID construction.

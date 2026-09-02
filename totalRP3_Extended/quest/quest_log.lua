@@ -67,13 +67,6 @@ local function onCampaignActionSelected(value, button)
 	elseif value == 2 then
 		TRP3_API.quest.activateCampaign(button.campaignID);
 		refreshCampaignList();
-	elseif value == 3 then
-		local campaignID = button.campaignID;
-		local _, campaignName = getClassDataSafe(getClass(campaignID));
-		TRP3_API.popup.showConfirmPopup(("Delete campaign '%s' from your Extended database?\n\n%s"):format(campaignName or campaignID, campaignID), function()
-			TRP3_API.extended.removeObjectByFullID(campaignID);
-			goToPage(false, TAB_CAMPAIGNS);
-		end);
 	end
 end
 
@@ -88,9 +81,6 @@ local function onCampaignButtonClick(button, mouseButton)
 		tinsert(values, {campaignName});
 		tinsert(values, {loc("QE_CAMPAIGN_RESET"), 1});
 		tinsert(values, {loc("QE_CAMPAIGN_START_BUTTON"), 2});
-		if TRP3_API.extended.isObjectMine and TRP3_API.extended.isObjectMine(campaignID) then
-			tinsert(values, {DELETE or "Delete", 3, "Delete this campaign object from your Extended database."});
-		end
 		TRP3_API.ui.listbox.displayDropDown(button, values, onCampaignActionSelected, 0, true);
 	end
 end

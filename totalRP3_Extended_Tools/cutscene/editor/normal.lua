@@ -322,7 +322,7 @@ end
 local function loadWorkflows()
 	editor.workflowIDs = {};
 	editor.workflowListStructure = TRP3_ScriptEditorNormal.reloadWorkflowlist(editor.workflowIDs);
-	TRP3_API.ui.listbox.setupListBox(editor.workflow, editor.workflowListStructure, nil, nil, 300, true);
+	TRP3X_WOTLK.setupListBox(editor.workflow, editor.workflowListStructure, nil, nil, 300, true);
 end
 
 local function load()
@@ -507,7 +507,7 @@ function TRP3_API.extended.tools.initCutsceneEditorNormal(ToolFrame)
 	editor.direction.section:SetText(loc("DI_DIALOG"));
 	editor.direction.Text:SetText(loc("DI_NAME_DIRECTION"));
 	setTooltipForSameFrame(editor.direction, "RIGHT", 0, 5, loc("DI_NAME_DIRECTION"), loc("DI_NAME_DIRECTION_TT") .. "\n\n|cffff9900" .. loc("DI_ATTR_TT"));
-	TRP3_API.ui.listbox.setupListBox(editor.directionValue, {
+	TRP3X_WOTLK.setupListBox(editor.directionValue, {
 		{loc("DI_NAME_DIRECTION")},
 		{loc("CM_LEFT"), "LEFT"},
 		{loc("CM_RIGHT"), "RIGHT"},

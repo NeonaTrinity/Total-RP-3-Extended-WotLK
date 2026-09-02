@@ -34,7 +34,7 @@ local unitTypeEditor, stringEditor, numericEditor = TRP3_OperandEditorUnitType, 
 local unitType;
 
 local function initEnitTypeEditor()
-	TRP3_API.ui.listbox.setupListBox(unitTypeEditor.type, unitType, nil, nil, 180, true);
+	TRP3X_WOTLK.setupListBox(unitTypeEditor.type, unitType, nil, nil, 180, true);
 
 	function unitTypeEditor.load(args)
 		unitTypeEditor.type:SetSelectedValue((args or EMPTY)[1] or "target");
@@ -318,7 +318,7 @@ local function unit_distance_point_init()
 		editor = editor,
 	});
 
-	TRP3_API.ui.listbox.setupListBox(editor.type, unitType, nil, nil, 180, true);
+	TRP3X_WOTLK.setupListBox(editor.type, unitType, nil, nil, 180, true);
 
 	editor.x.title:SetText(loc("OP_OP_DISTANCE_X"));
 	editor.y.title:SetText(loc("OP_OP_DISTANCE_Y"));
@@ -563,7 +563,7 @@ local function char_achievement_init()
 		{TRP3_API.formats.dropDownElements:format(loc("OP_OP_CHAR_ACHIEVEMENT_WHO"), loc("OP_OP_CHAR_ACHIEVEMENT_CHAR")), "character", loc("OP_OP_CHAR_ACHIEVEMENT_CHAR_TT")}
 	}
 	
-	TRP3_API.ui.listbox.setupListBox(editor.type, types, nil, nil, 200, true);
+	TRP3X_WOTLK.setupListBox(editor.type, types, nil, nil, 200, true);
 	
 	function editor.load(args)
 		editor.type:SetSelectedValue((args or EMPTY)[1] or "account");
@@ -625,7 +625,7 @@ local function check_var_init()
 		{TRP3_API.formats.dropDownElements:format(loc("EFFECT_SOURCE"), loc("EFFECT_SOURCE_OBJECT")), "o", loc("EFFECT_SOURCE_OBJECT_TT")},
 		{TRP3_API.formats.dropDownElements:format(loc("EFFECT_SOURCE"), loc("EFFECT_SOURCE_CAMPAIGN")), "c", loc("EFFECT_SOURCE_CAMPAIGN_TT")}
 	}
-	TRP3_API.ui.listbox.setupListBox(editor.source, sources, nil, nil, 200, true);
+	TRP3X_WOTLK.setupListBox(editor.source, sources, nil, nil, 200, true);
 
 	-- Var name
 	editor.var.title:SetText(loc("EFFECT_VAR"))

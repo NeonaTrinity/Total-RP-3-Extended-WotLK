@@ -153,7 +153,7 @@ end
 -- INIT
 --*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-local setupListBox = TRP3_API.ui.listbox.setupListBox;
+local setupListBox = TRP3X_WOTLK.setupListBox;
 local getQualityColorText = TRP3_API.inventory.getQualityColorText;
 
 function TRP3_API.extended.tools.initItemQuickEditor(ToolFrame)

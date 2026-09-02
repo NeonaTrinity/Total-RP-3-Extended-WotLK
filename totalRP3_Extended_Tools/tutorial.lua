@@ -94,7 +94,7 @@ local function startTutorial(step)
 		if not currentStructure or #currentStructure == 0 then return; end
 		ToolFrame.tutoframe:Show();
 		ToolFrame.tutorialhide:Show();
-		TRP3_API.ui.listbox.setupListBox(ToolFrame.tutoframe.step, currentList, onStep, nil, 200, true);
+		TRP3X_WOTLK.setupListBox(ToolFrame.tutoframe.step, currentList, onStep, nil, 200, true);
 		ToolFrame.tutoframe.step:SetSelectedValue(step or 1);
 		ToolFrame.tutoframe:SetFrameLevel(ToolFrame:GetFrameLevel() + 100);
 		ToolFrame.tutorialhide:SetFrameLevel(ToolFrame:GetFrameLevel() + 50);

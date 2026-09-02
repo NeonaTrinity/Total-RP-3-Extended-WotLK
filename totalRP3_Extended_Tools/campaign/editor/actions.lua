@@ -82,7 +82,7 @@ local ACTION_LIST_WIDTH = 250;
 
 local function reloadWorkflowlist()
 	editor.editor.workflowIDs = {};
-	TRP3_API.ui.listbox.setupListBox(editor.editor.workflow,
+	TRP3X_WOTLK.setupListBox(editor.editor.workflow,
 		TRP3_ScriptEditorNormal.reloadWorkflowlist(editor.editor.workflowIDs),
 		nil, nil, ACTION_LIST_WIDTH, true);
 end
@@ -234,7 +234,7 @@ function editor.init(ToolFrame)
 	editor.editor.save:SetScript("OnClick", function(self)
 		onActionSaved();
 	end);
-	TRP3_API.ui.listbox.setupListBox(editor.editor.type,
+	TRP3X_WOTLK.setupListBox(editor.editor.type,
 		{
 			{loc("CA_ACTIONS_SELECT")},
 			{TRP3_API.formats.dropDownElements:format(loc("CA_ACTIONS"), TRP3_API.quest.getActionTypeLocale(TRP3_API.quest.ACTION_TYPES.LOOK)), TRP3_API.quest.ACTION_TYPES.LOOK},

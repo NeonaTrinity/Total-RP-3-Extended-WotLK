@@ -189,7 +189,7 @@ local function initHistory()
 	end);
 
 	historyFrame.container:SetFontObject(ChatFontNormal);
-	historyFrame.container:SetHyperlinksEnabled(true);
+	TRP3X_WOTLK.enableHyperlinks(historyFrame.container, true);
 	historyFrame.container:SetJustifyH("LEFT");
 
 	historyFrame.title:SetText(loc("EX_SOUND_HISTORY"));

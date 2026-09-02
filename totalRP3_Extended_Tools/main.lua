@@ -496,7 +496,7 @@ local function onStart()
 		{template:format(getObjectLocaleImage("es")), "es"},
 		{template:format(getObjectLocaleImage("de")), "de"},
 	}
-	TRP3_API.ui.listbox.setupListBox(toolFrame.root.select, types, function(value)
+	TRP3X_WOTLK.setupListBox(toolFrame.root.select, types, function(value)
 		if toolFrame.rootDraft and toolFrame.rootDraft.MD then
 			toolFrame.rootDraft.MD.LO = value;
 		end

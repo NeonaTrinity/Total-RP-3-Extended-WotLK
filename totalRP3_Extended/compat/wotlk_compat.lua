@@ -6,7 +6,7 @@
 --------------------------------------------------------------------------------
 
 TRP3X_WOTLK = TRP3X_WOTLK or {};
-TRP3X_WOTLK.alpha = "16";
+TRP3X_WOTLK.alpha = "17";
 -- The stock WotLK TRP3 toolbar crashes when an addon registers its first button
 -- because toolbar.lua assumes GetPushedTexture() is non-nil. Keep the public
 -- base addon untouched; Alpha 16 keeps the Extended buttons on a small
@@ -902,6 +902,72 @@ do
     end
 end
 
+
+
+
+-- API-34 list boxes separate the visible box width from the popup offset.
+-- API-11 accidentally reuses boxWidth as the popup X offset, which pushes
+-- Extended's 180-300px workflow/condition menus far to the left. Keep this
+-- helper Extended-only so stock TRP3 behavior is untouched.
+function TRP3X_WOTLK.setupListBox(listBox, values, callback, defaultText, boxWidth, addCancel)
+    assert(listBox and values, "Invalid arguments");
+    local name = listBox.GetName and listBox:GetName();
+    local button = name and _G[name .. "Button"];
+    local textRegion = name and _G[name .. "Text"];
+    local middle = name and _G[name .. "Middle"];
+    assert(button, "Invalid arguments: listbox doesn't have a button");
+
+    boxWidth = boxWidth or 115;
+    listBox.values = values;
+    listBox.callback = callback;
+
+    local function setTextAndValue(value, fireCallback)
+        for _, tab in pairs(values) do
+            if tab[2] == value then
+                if textRegion then textRegion:SetText(tab[1] or ""); end
+                listBox.selectedValue = value;
+                if fireCallback and callback then callback(value, listBox); end
+                return true;
+            end
+        end
+        return false;
+    end
+
+    listBox.SetSelectedIndex = function(self, index)
+        assert(self.values and self.values[index], "Array index out of bound");
+        local entry = self.values[index];
+        if textRegion then textRegion:SetText(entry[1] or ""); end
+        self.selectedValue = entry[2];
+        if callback then callback(entry[2], self); end
+    end;
+    listBox.GetSelectedValue = function(self) return self.selectedValue; end;
+    listBox.SetSelectedValue = function(self, value) setTextAndValue(value, true); end;
+
+    button:SetScript("OnClick", function()
+        API.ui.listbox.displayDropDown(button, values, function(value)
+            setTextAndValue(value, true);
+        end, -10, addCancel);
+    end);
+
+    if defaultText and textRegion then textRegion:SetText(defaultText); end
+    if middle then middle:SetWidth(boxWidth); end
+    if textRegion then textRegion:SetWidth(boxWidth - 20); end
+end
+
+
+
+-- Later FontString/SimpleHTML conveniences used by 1.0.7 but not guaranteed
+-- on the 3.3.5 widget implementations.
+function TRP3X_WOTLK.setAlphaGradient(region, start, length)
+    if region and region.SetAlphaGradient then
+        pcall(region.SetAlphaGradient, region, start or 0, length or 0);
+    end
+end
+function TRP3X_WOTLK.enableHyperlinks(frame, enabled)
+    if frame and frame.SetHyperlinksEnabled then
+        pcall(frame.SetHyperlinksEnabled, frame, enabled and true or false);
+    end
+end
 
 
 -- Tooltip exports that are local-only in the older WotLK TRP3 implementation.

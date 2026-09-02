@@ -39,7 +39,7 @@ local function decorateLinkElement(frame, index)
 	frame.Icon:SetTexture(structureInfo.icon);
 	setTooltipForSameFrame(frame, "TOP", 0, -5, structureInfo.text, structureInfo.tt);
 
-	TRP3_API.ui.listbox.setupListBox(frame.select, editor.workflowListStructure, function(value)
+	TRP3X_WOTLK.setupListBox(frame.select, editor.workflowListStructure, function(value)
 		toolFrame.specificDraft.LI[structureInfo.field] = stEtN(value);
 	end, nil, LINK_LIST_WIDTH, true);
 	TRP3_ScriptEditorNormal.safeLoadList(frame.select, editor.workflowIDs, toolFrame.specificDraft.LI[structureInfo.field] or "");
@@ -89,7 +89,7 @@ local ACTION_LIST_WIDTH = 250;
 
 local function reloadWorkflowlist()
 	gameLinksEditor.editor.workflowIDs = {};
-	TRP3_API.ui.listbox.setupListBox(gameLinksEditor.editor.workflow,
+	TRP3X_WOTLK.setupListBox(gameLinksEditor.editor.workflow,
 		TRP3_ScriptEditorNormal.reloadWorkflowlist(gameLinksEditor.editor.workflowIDs),
 		nil, nil, ACTION_LIST_WIDTH, true);
 end

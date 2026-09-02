@@ -368,6 +368,50 @@ end
 
 local tabGroup;
 local TUTORIAL;
+local DB_TAB_GAP = 8;
+
+local function setDatabaseTabText(tab, fullText)
+    if not tab then return; end
+    fullText = tostring(fullText or "");
+    local fontString = tab.GetFontString and tab:GetFontString();
+    local available = math.max((tab:GetWidth() or 0) - 18, 30);
+    local shown = fullText;
+    if fontString then
+        fontString:SetWidth(available);
+        if fontString.SetWordWrap then fontString:SetWordWrap(false); end
+        fontString:SetText(shown);
+        while #shown > 4 and fontString:GetStringWidth() > available do
+            shown = shown:sub(1, #shown - 1);
+            fontString:SetText(shown .. "...");
+        end
+        if shown ~= fullText then shown = shown .. "..."; end
+    end
+    tab:SetText(shown);
+    tab._trp3xFullText = fullText;
+    tab:SetScript("OnEnter", function(self)
+        if self._trp3xFullText and self:GetText() ~= self._trp3xFullText then
+            GameTooltip:SetOwner(self, "ANCHOR_TOP");
+            GameTooltip:SetText(self._trp3xFullText, 1, 1, 1);
+            GameTooltip:Show();
+        end
+    end);
+    tab:SetScript("OnLeave", function() GameTooltip:Hide(); end);
+end
+
+local function redrawDatabaseTabs(group)
+    local lastWidget;
+    for _, tabWidget in ipairs(group.tabs) do
+        if tabWidget:IsShown() then
+            tabWidget:ClearAllPoints();
+            if not lastWidget then
+                tabWidget:SetPoint("LEFT", 0, 0);
+            else
+                tabWidget:SetPoint("LEFT", lastWidget, "RIGHT", DB_TAB_GAP, 0);
+            end
+            lastWidget = tabWidget;
+        end
+    end
+end
 
 local function getDBSize(dbType)
 	local DB = getDB(dbType);
@@ -382,10 +426,10 @@ local function getDBSize(dbType)
 end
 
 local function onTabChanged(tabWidget, tab)
-	tabGroup.tabs[1]:SetText(loc("DB_MY"):format(getDBSize(TABS.MY_DB)));
-	tabGroup.tabs[2]:SetText(loc("DB_OTHERS"):format(getDBSize(TABS.OTHERS_DB)));
-	tabGroup.tabs[3]:SetText(loc("DB_BACKERS"):format(getDBSize(TABS.BACKERS_DB)));
-	tabGroup.tabs[4]:SetText(loc("DB_FULL"):format(getDBSize()));
+	setDatabaseTabText(tabGroup.tabs[1], loc("DB_MY"):format(getDBSize(TABS.MY_DB)));
+	setDatabaseTabText(tabGroup.tabs[2], loc("DB_OTHERS"):format(getDBSize(TABS.OTHERS_DB)));
+	setDatabaseTabText(tabGroup.tabs[3], loc("DB_BACKERS"):format(getDBSize(TABS.BACKERS_DB)));
+	setDatabaseTabText(tabGroup.tabs[4], loc("DB_FULL"):format(getDBSize()));
 
 	TRP3_ItemQuickEditor:Hide();
 	ToolFrame.list.bottom.item:Hide();
@@ -447,19 +491,22 @@ end
 
 local function createTabBar()
 	local frame = CreateFrame("Frame", "TRP3_ToolFrameListTabPanel", ToolFrame.list);
-	frame:SetSize(810, 30);
+	frame:SetSize(1030, 30);
 	frame:SetPoint("BOTTOMLEFT", frame:GetParent(), "TOPLEFT", 15, 0);
 
 	tabGroup = TRP3_API.ui.frame.createTabPanel(frame,
 		{
-			{ "", TABS.MY_DB, 201 },
-			{ "", TABS.OTHERS_DB, 241 },
-			{ "", TABS.BACKERS_DB, 221 },
-			{ "", TABS.FULL_DB, 221 },
-			{ loc("DB_BACKERS_LIST"), TABS.BACKERS_LIST, 160 },
+			{ "", TABS.MY_DB, 196 },
+			{ "", TABS.OTHERS_DB, 196 },
+			{ "", TABS.BACKERS_DB, 196 },
+			{ "", TABS.FULL_DB, 196 },
+			{ loc("DB_BACKERS_LIST"), TABS.BACKERS_LIST, 180 },
 		},
 		onTabChanged
 	);
+	tabGroup.Redraw = redrawDatabaseTabs;
+	redrawDatabaseTabs(tabGroup);
+	setDatabaseTabText(tabGroup.tabs[5], loc("DB_BACKERS_LIST"));
 end
 
 function TRP3_API.extended.tools.toList()
@@ -701,7 +748,7 @@ function TRP3_API.extended.tools.initList(toolFrame)
 		{TRP3_API.formats.dropDownElements:format(loc("TYPE"), loc("TYPE_DOCUMENT")), TRP3_DB.types.DOCUMENT},
 		{TRP3_API.formats.dropDownElements:format(loc("TYPE"), loc("TYPE_DIALOG")), TRP3_DB.types.DIALOG},
 	}
-	TRP3_API.ui.listbox.setupListBox(ToolFrame.list.filters.type, types, function(value) filterList(value, nil) end, nil, 155, true);
+	TRP3X_WOTLK.setupListBox(ToolFrame.list.filters.type, types, function(value) filterList(value, nil) end, nil, 155, true);
 
 	local template = "|T%s:11:16|t";
 	local locales = {
@@ -712,7 +759,7 @@ function TRP3_API.extended.tools.initList(toolFrame)
 		{TRP3_API.formats.dropDownElements:format(loc("DB_LOCALE"), template:format(TRP3_API.extended.tools.getObjectLocaleImage("es"))), "es"},
 		{TRP3_API.formats.dropDownElements:format(loc("DB_LOCALE"), template:format(TRP3_API.extended.tools.getObjectLocaleImage("de"))), "de"},
 	}
-	TRP3_API.ui.listbox.setupListBox(ToolFrame.list.filters.locale, locales, function(value) filterList(nil, value) end, nil, 155, true);
+	TRP3X_WOTLK.setupListBox(ToolFrame.list.filters.locale, locales, function(value) filterList(nil, value) end, nil, 155, true);
 	ToolFrame.list.filters.locale:SetSelectedValue(0);
 	ToolFrame.list.filters.type:SetSelectedValue(0);
 	ToolFrame.list.filters.search:SetText(SEARCH);
@@ -829,7 +876,8 @@ function TRP3_API.extended.tools.initList(toolFrame)
 	end
 
 	-- Detect import/export module
-	hasImportExportModule = IsAddOnLoaded("totalRP3_Extended_ImpExport");
+	hasImportExportModule = true; -- Alpha 17 bundles/restores the 1.0.7 save bridge.
+	TRP3_Extended_ImpExport = TRP3_Extended_ImpExport or {};
 	if hasImportExportModule then
 		if not TRP3_Extended_ImpExport then
 			TRP3_Extended_ImpExport = {};

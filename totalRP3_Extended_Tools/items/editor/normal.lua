@@ -397,7 +397,7 @@ function TRP3_API.extended.tools.initItemEditorNormal(ToolFrame)
 	setTooltipForSameFrame(display.name.help, "RIGHT", 0, 5, loc("IT_FIELD_NAME"), loc("IT_FIELD_NAME_TT"));
 
 	-- Quality
-	TRP3_API.ui.listbox.setupListBox(display.quality, TRP3_ItemQuickEditor.qualityList, nil, nil, 200, true);
+	TRP3X_WOTLK.setupListBox(display.quality, TRP3_ItemQuickEditor.qualityList, nil, nil, 200, true);
 
 	-- Left attribute
 	display.left.title:SetText(loc("IT_TT_LEFT"));
@@ -498,7 +498,7 @@ function TRP3_API.extended.tools.initItemEditorNormal(ToolFrame)
 		tinsert(pickUpList, {loc("IT_PU_SOUND") .. ": |cff00ff00" .. loc("IT_PU_SOUND_" .. i), i});
 	end
 	tinsert(pickUpList, {loc("IT_PU_SOUND") .. ": |cff00ff00" .. loc("IT_PU_SOUND_" .. 1221), 1221});
-	TRP3_API.ui.listbox.setupListBox(gameplay.pickSound, pickUpList, function(value)
+	TRP3X_WOTLK.setupListBox(gameplay.pickSound, pickUpList, function(value)
 		if not gameplay.mute then
 			TRP3_API.ui.misc.playSoundKit(value, "SFX");
 		end
@@ -509,7 +509,7 @@ function TRP3_API.extended.tools.initItemEditorNormal(ToolFrame)
 	for i = 1200, 1217 do
 		tinsert(dropList, {loc("IT_DR_SOUND") .. ": |cff00ff00" .. loc("IT_DR_SOUND_" .. i), i});
 	end
-	TRP3_API.ui.listbox.setupListBox(gameplay.dropSound, dropList, function(value)
+	TRP3X_WOTLK.setupListBox(gameplay.dropSound, dropList, function(value)
 		if not gameplay.mute then
 			TRP3_API.ui.misc.playSoundKit(value, "SFX");
 		end
@@ -546,7 +546,7 @@ function TRP3_API.extended.tools.initItemEditorNormal(ToolFrame)
 		{(loc("IT_CO_SIZE") .. ": |cff00ff00%s"):format(loc("IT_CO_SIZE_COLROW"):format(2, 4)), "2x4"},
 		{(loc("IT_CO_SIZE") .. ": |cff00ff00%s"):format(loc("IT_CO_SIZE_COLROW"):format(1, 4)), "1x4"},
 	};
-	TRP3_API.ui.listbox.setupListBox(container.type, container.containerTypes, onContainerResize, nil, 230, true);
+	TRP3X_WOTLK.setupListBox(container.type, container.containerTypes, onContainerResize, nil, 230, true);
 
 	-- Durability
 	container.durability.title:SetText(loc("IT_CO_DURABILITY"));

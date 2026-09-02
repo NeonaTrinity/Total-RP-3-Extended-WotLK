@@ -120,7 +120,7 @@
 					<Size x="0" y="20" />
 					<Anchors>
 						<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="$parenticon" x="5" y="0" />
-						<Anchor point="RIGHT" x="-5" y="0" />
+						<Anchor point="RIGHT" x="-112" y="0" />
 					</Anchors>
 					<Color r="0.95" g="0.95" b="0.95" />
 				</FontString>
@@ -128,27 +128,17 @@
 					<Size x="0" y="10" />
 					<Anchors>
 						<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" relativeTo="$parenticon" x="5" y="5" />
-						<Anchor point="RIGHT" x="-110" y="0" />
+						<Anchor point="RIGHT" x="-125" y="0" />
 					</Anchors>
 					<Color r="0.95" g="0.75" b="0.10" />
 				</FontString>
 				<FontString parentKey="conditioned" inherits="GameFontNormalSmall" justifyH="RIGHT" text="[CONDITIONNED]" name="$parentconditioned">
-					<Size x="0" y="10" />
+					<Size x="105" y="10" />
 					<Anchors>
-						<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" relativeTo="$parenticon" x="5" y="5" />
-						<Anchor point="RIGHT" x="-10" y="0" />
+						<Anchor point="BOTTOMRIGHT" x="-10" y="5" />
 					</Anchors>
 					<Color r="0" g="0.95" b="0" />
 				</FontString>
-			</Layer>
-			<Layer level="OVERLAY">
-				<Texture file="Interface\MINIMAP\MiniMap-VignetteArrow">
-					<Size x="40" y="40" />
-					<Anchors>
-						<Anchor point="CENTER" relativePoint="BOTTOMLEFT" x="20" y="0" />
-					</Anchors>
-					<TexCoords left="0" right="1" top="1" bottom="0"/>
-				</Texture>
 			</Layer>
 		</Layers>
 		<Scripts>

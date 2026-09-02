@@ -378,6 +378,13 @@ function onElementConfirm(self)
 	end
 end
 
+local function workflowRowSummary(text, maxChars)
+	text = tostring(text or "");
+	maxChars = maxChars or 52;
+	if string.len(text) <= maxChars then return text; end
+	return string.sub(text, 1, maxChars - 3) .. "...";
+end
+
 local function decorateEffect(scriptStepFrame, effectData)
 	local effect = TRP3_API.script.getEffect(effectData.id) or EMPTY;
 	local effectInfo = TRP3_API.extended.tools.getEffectEditorInfo(effectData.id) or EMPTY;
@@ -387,7 +394,7 @@ local function decorateEffect(scriptStepFrame, effectData)
 
 	-- Tooltip
 	local tooltip = effectInfo.description or loc("EFFECT_MISSING"):format(effectData.id);
-	scriptStepFrame.description:SetText(tooltip);
+	scriptStepFrame.description:SetText(workflowRowSummary(tooltip, 54));
 	if effect.secured then
 		tooltip = tooltip .. "\n\n|cffffff00" .. loc("WO_SECURITY") .. ":\n";
 		local format = "%s:|r %s";
@@ -430,12 +437,12 @@ local function decorateElement(scriptStepFrame)
 	elseif scriptStep.t == ELEMENT_TYPE.CONDITION then
 		TRP3_API.ui.frame.setupIconButton(scriptStepFrame, ELEMENT_CONDITION_ICON);
 		scriptStepFrame.title:SetText(stepFormat:format(scriptStepFrame.scriptStepID, loc("WO_CONDITION")));
-		scriptStepFrame.description:SetText(TRP3_ConditionEditor.getConditionPreview(scriptStep.b[1].cond));
+		scriptStepFrame.description:SetText(workflowRowSummary(TRP3_ConditionEditor.getConditionPreview(scriptStep.b[1].cond), 54));
 		setTooltipForSameFrame(scriptStepFrame, "TOP", 0, 5, loc("WO_CONDITION"), loc("WO_CONDITION_TT") .. "\n\n|cffffff00" .. loc("WO_ELEMENT_EDIT"));
 	elseif scriptStep.t == ELEMENT_TYPE.DELAY then
 		TRP3_API.ui.frame.setupIconButton(scriptStepFrame, ELEMENT_DELAY_ICON);
 		scriptStepFrame.title:SetText(stepFormat:format(scriptStepFrame.scriptStepID, loc("WO_DELAY")));
-		scriptStepFrame.description:SetText(TRP3_ScriptEditorDelay.decorate(scriptStep));
+		scriptStepFrame.description:SetText(workflowRowSummary(TRP3_ScriptEditorDelay.decorate(scriptStep), 54));
 		setTooltipForSameFrame(scriptStepFrame, "TOP", 0, 5, loc("WO_DELAY"), loc("WO_DELAY_TT") .. "\n\n|cffffff00" .. loc("WO_ELEMENT_EDIT"));
 	end
 end
@@ -476,6 +483,8 @@ function refreshElementList()
 		if not scriptStepFrame then
 			scriptStepFrame = CreateFrame("Frame", "TRP3_EditorEffectFrame" .. stepID, editor.workflow.container.scroll.list, "TRP3_EditorEffectFrame");
 			scriptStepFrame.conditioned:SetText(loc("COND_CONDITIONED"));
+			if scriptStepFrame.title.SetWordWrap then scriptStepFrame.title:SetWordWrap(false); end
+			if scriptStepFrame.description.SetWordWrap then scriptStepFrame.description:SetWordWrap(false); end
 			scriptStepFrame:SetScript("OnMouseUp", onElementClick);
 			scriptStepFrame.remove:SetScript("OnClick", onRemoveClick);
 			setTooltipAll(scriptStepFrame.moveup, "TOP", 0, 0, loc("CM_MOVE_UP"));

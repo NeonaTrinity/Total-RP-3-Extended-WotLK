@@ -1,3 +1,13 @@
+TRP3 Extended WotLK Alpha 21
+================================
+
+Workflow row UI restoration:
+- Fixes Extended setupIconButton resolving .icon child frames instead of their actual Icon texture.
+- Removes the later-client MiniMap-VignetteArrow connector that renders as a stray green block on Wrath.
+- Reserves the right side of workflow-element banners for move/delete controls and conditioned status.
+- Keeps description/status text in separate regions and shortens long row summaries with ellipses.
+- Full descriptions remain available in the existing element tooltip.
+
 TRP3 Extended WotLK Alpha 20
 ================================
 

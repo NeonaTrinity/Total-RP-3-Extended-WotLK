@@ -6,7 +6,7 @@
 --------------------------------------------------------------------------------
 
 TRP3X_WOTLK = TRP3X_WOTLK or {};
-TRP3X_WOTLK.alpha = "20";
+TRP3X_WOTLK.alpha = "21";
 -- The stock WotLK TRP3 toolbar crashes when an addon registers its first button
 -- because toolbar.lua assumes GetPushedTexture() is non-nil. Keep the public
 -- base addon untouched; Alpha 16 keeps the Extended buttons on a small
@@ -592,18 +592,35 @@ do
     if oldSetupIconButton and not TRP3X_WOTLK.setupIconButtonWrapperInstalled then
         API.ui.frame.setupIconButton = function(frame, icon)
             if not frame then return; end
+
+            -- A later Extended XML node can expose .icon/.Icon as a child
+            -- *frame*, while the actual texture is <childName>Icon. Alpha 20
+            -- could stop on that frame and never reach its texture, leaving
+            -- workflow rows on INV_Misc_QuestionMark. Resolve candidates only
+            -- when they are actual texture regions, otherwise descend once.
+            local function resolveIconTexture(candidate)
+                if not candidate then return nil; end
+                if candidate.SetTexture then return candidate; end
+                if candidate.GetName then
+                    local childName = candidate:GetName();
+                    local childTexture = childName and _G[childName .. "Icon"];
+                    if childTexture and childTexture.SetTexture then
+                        return childTexture;
+                    end
+                end
+                return nil;
+            end
+
             local texture;
             local name = frame.GetName and frame:GetName();
-            if name then texture = _G[name .. "Icon"] or _G[name .. "icon"]; end
-            if not texture and frame.Icon then
-                if frame.Icon.SetTexture then texture = frame.Icon;
-                elseif frame.Icon.GetName then texture = _G[frame.Icon:GetName() .. "Icon"]; end
+            if name then
+                texture = resolveIconTexture(_G[name .. "Icon"]);
+                if not texture then texture = resolveIconTexture(_G[name .. "icon"]); end
             end
-            if not texture and frame.icon then
-                if frame.icon.SetTexture then texture = frame.icon;
-                elseif frame.icon.GetName then texture = _G[frame.icon:GetName() .. "Icon"]; end
-            end
-            if texture and texture.SetTexture then
+            if not texture then texture = resolveIconTexture(frame.Icon); end
+            if not texture then texture = resolveIconTexture(frame.icon); end
+
+            if texture then
                 texture:SetTexture("Interface\\ICONS\\" .. (icon or "INV_Misc_QuestionMark"));
                 return texture;
             end

@@ -2,9 +2,11 @@ TRP3 Extended WotLK 3.3.5a - Alpha 16 by J3
 
 # This addon is currently in alpha and not for public distribution yet #
 Features working:
-loads, TRP3 inventory, TRP3 Item creation.
+- RP3 inventory, TRP3 Item creation, TRP Item trading, and player RP stashes.
+- Database manager tool has limited functionality
 
-not yet working: workflows, campaigns, everything else.
+not yet working: 
+- workflows, campaigns, quest.
 
 for use with TRP3 backport https://github.com/joyvanderveeken/Total-RP-3-WotLK, by joyvanderveeken
 

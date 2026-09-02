@@ -472,7 +472,7 @@ function TRP3_API.inventory.initInventoryPage()
 
 	-- Equip
 	model.defaultRotation = 0;
-	main.Equip.Title:SetText(loc("INV_PAGE_ITEM_LOCATION"));
+	main.Equip.Title:SetText(loc("INV_PAGE_ITEM_LOCATION") .. " - drag the green marker");
 	createRefreshOnFrame(main.Equip, 0.15, onEquipRefresh);
 	main.Equip:SetScript("OnShow", function() model.Blocker:Hide() end);
 	main.Equip:SetScript("OnHide", function() model.Blocker:Show() end);
@@ -481,18 +481,30 @@ function TRP3_API.inventory.initInventoryPage()
 	-- Hide unwanted model adaptation
 	model.controlFrame:SetPoint("TOP", 0, 25);
 	model.controlFrame:SetWidth(55);
-	_G[model.controlFrame:GetName() .. "RotateLeftButton"]:ClearAllPoints();
-	_G[model.controlFrame:GetName() .. "RotateLeftButton"]:SetPoint("Left", 2, 0);
+	local rotateLeft = _G[model.controlFrame:GetName() .. "RotateLeftButton"];
+	local rotateRight = _G[model.controlFrame:GetName() .. "RotateRightButton"];
+	rotateLeft:ClearAllPoints();
+	rotateLeft:SetPoint("LEFT", model.controlFrame, "LEFT", 2, 0);
+	if rotateRight then
+		rotateRight:ClearAllPoints();
+		rotateRight:SetPoint("LEFT", rotateLeft, "RIGHT", 2, 0);
+	end
+	rotateLeft:SetScript("OnClick", function() setModelPosition(model, (model.rotation or 0) - 0.15); end);
+	if rotateRight then rotateRight:SetScript("OnClick", function() setModelPosition(model, (model.rotation or 0) + 0.15); end); end
+	setTooltipForSameFrame(rotateLeft, "TOP", 0, 5, loc("INV_PAGE_ITEM_LOCATION"), "Rotate character left");
+	if rotateRight then setTooltipForSameFrame(rotateRight, "TOP", 0, 5, loc("INV_PAGE_ITEM_LOCATION"), "Rotate character right"); end
 	_G[model.controlFrame:GetName() .. "ZoomInButton"]:Hide();
 	_G[model.controlFrame:GetName() .. "ZoomOutButton"]:Hide();
 	_G[model.controlFrame:GetName() .. "PanButton"]:Hide();
 	local MOVE_SCALE = 1;
 	model.Marker:SetScript("OnMouseUp", function(self)
-		local _, _, _, x, y = self:GetPoint("TOPLEFT");
-		local diffX = x - self.x;
-		local diffY = y - self.y;
+		local _, _, _, x, y = self:GetPoint(1);
+		local diffX = (x or self.x or 0) - (self.x or 0);
+		local diffY = (y or self.y or 0) - (self.y or 0);
 		self:StopMovingOrSizing();
-		moveMarker(self, diffX * MOVE_SCALE, diffY * MOVE_SCALE, self.origX, self.origY, model);
+		local button = main.Equip.isOn;
+		local quality = button and button.class and button.class.BA and button.class.BA.QA or LE_ITEM_QUALITY_COMMON;
+		moveMarker(self, diffX * MOVE_SCALE, diffY * MOVE_SCALE, self.origX or 0, self.origY or 0, quality, model);
 	end);
 
 	main.Equip.time:SetScript("OnValueChanged", function(self)
@@ -507,6 +519,11 @@ function TRP3_API.inventory.initInventoryPage()
 	main.Equip.sequence:SetScript("OnEnterPressed", onChange);
 	main.Equip.sequence.title:SetText(loc("INV_PAGE_SEQUENCE"));
 	setTooltipForSameFrame(main.Equip.sequence.help, "RIGHT", 0, 5, loc("INV_PAGE_SEQUENCE"), loc("INV_PAGE_SEQUENCE_TT"));
+	local timeName = main.Equip.time:GetName();
+	if timeName and _G[timeName .. "Text"] then _G[timeName .. "Text"]:SetText("Animation time"); end
+	if timeName and _G[timeName .. "Low"] then _G[timeName .. "Low"]:SetText("1"); end
+	if timeName and _G[timeName .. "High"] then _G[timeName .. "High"]:SetText("3000"); end
+	setTooltipForSameFrame(model.Marker, "TOP", 0, 8, loc("INV_PAGE_ITEM_LOCATION"), "Drag this green marker to choose where the wearable item is considered to be located on your character.");
 
 	-- Preset
 	local presets = {

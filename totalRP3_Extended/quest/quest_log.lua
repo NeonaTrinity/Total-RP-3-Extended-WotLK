@@ -19,6 +19,26 @@ local Globals, Events, Utils = TRP3_API.globals, TRP3_API.events, TRP3_API.utils
 local _G, assert, tostring, tinsert, wipe, pairs = _G, assert, tostring, tinsert, wipe, pairs;
 local CreateFrame = CreateFrame;
 local loc = TRP3_API.locale.getText;
+
+-- Wrath's CreateMacro expects an icon INDEX, while Extended 1.0.7 passes an
+-- icon texture name. Resolve the requested texture through the pre-4.3 macro
+-- icon API and fall back to the first macro icon when it is unavailable.
+local function getWotLKMacroIconIndex(iconName)
+	if type(iconName) == "number" then return iconName; end
+	local wanted = tostring(iconName or ""):lower();
+	wanted = wanted:gsub("^interface\\icons\\", "");
+	if GetNumMacroIcons and GetMacroIconInfo then
+		local count = GetNumMacroIcons() or 0;
+		for i = 1, count do
+			local texture = GetMacroIconInfo(i);
+			if texture then
+				local normalized = tostring(texture):lower():gsub("^interface\\icons\\", "");
+				if normalized == wanted then return i; end
+			end
+		end
+	end
+	return 1;
+end
 local EMPTY = TRP3_API.globals.empty;
 local Log = Utils.log;
 local getClass, getClassDataSafe, getClassesByType = TRP3_API.extended.getClass, TRP3_API.extended.getClassDataSafe, TRP3_API.extended.getClassesByType;
@@ -644,22 +664,22 @@ local function init()
 			if GetNumMacros() <= 120 then
 				if action == TRP3_API.quest.ACTION_TYPES.LISTEN then
 					if GetMacroIndexByName("TRP3_Listen") == 0 then
-						CreateMacro("TRP3_Listen", TRP3_API.quest.getActionTypeIcon(TRP3_API.quest.ACTION_TYPES.LISTEN), "/script TRP3_API.quest.listen();", 1);
+						CreateMacro("TRP3_Listen", getWotLKMacroIconIndex(TRP3_API.quest.getActionTypeIcon(TRP3_API.quest.ACTION_TYPES.LISTEN)), "/script TRP3_API.quest.listen();", true);
 					end
 					PickupMacro("TRP3_Listen");
 				elseif action == TRP3_API.quest.ACTION_TYPES.LOOK then
 					if GetMacroIndexByName("TRP3_Look") == 0 then
-						CreateMacro("TRP3_Look", TRP3_API.quest.getActionTypeIcon(TRP3_API.quest.ACTION_TYPES.LOOK), "/script TRP3_API.quest.inspect();", 1);
+						CreateMacro("TRP3_Look", getWotLKMacroIconIndex(TRP3_API.quest.getActionTypeIcon(TRP3_API.quest.ACTION_TYPES.LOOK)), "/script TRP3_API.quest.inspect();", true);
 					end
 					PickupMacro("TRP3_Look");
 				elseif action == TRP3_API.quest.ACTION_TYPES.ACTION then
 					if GetMacroIndexByName("TRP3_Interract") == 0 then
-						CreateMacro("TRP3_Interract", TRP3_API.quest.getActionTypeIcon(TRP3_API.quest.ACTION_TYPES.ACTION), "/script TRP3_API.quest.interract();", 1);
+						CreateMacro("TRP3_Interract", getWotLKMacroIconIndex(TRP3_API.quest.getActionTypeIcon(TRP3_API.quest.ACTION_TYPES.ACTION)), "/script TRP3_API.quest.interract();", true);
 					end
 					PickupMacro("TRP3_Interract");
 				elseif action == TRP3_API.quest.ACTION_TYPES.TALK then
 					if GetMacroIndexByName("TRP3_Talk") == 0 then
-						CreateMacro("TRP3_Talk", TRP3_API.quest.getActionTypeIcon(TRP3_API.quest.ACTION_TYPES.TALK), "/script TRP3_API.quest.talk();", 1);
+						CreateMacro("TRP3_Talk", getWotLKMacroIconIndex(TRP3_API.quest.getActionTypeIcon(TRP3_API.quest.ACTION_TYPES.TALK)), "/script TRP3_API.quest.talk();", true);
 					end
 					PickupMacro("TRP3_Talk");
 				end

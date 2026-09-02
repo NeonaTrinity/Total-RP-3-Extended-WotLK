@@ -3,7 +3,7 @@
 ## Author: Telkostrasz & Ellypse
 ## Notes: Creation tools for Total RP 3 Extended
 ## URL: http://extended.totalrp3.info
-## Version: 1.0.7-wotlk-alpha11
+## Version: 1.0.7-wotlk-alpha12
 ## RequiredDeps: totalRP3, totalRP3_Extended
 ## OptionalDeps: totalRP3_Extended_ImpExport
 ## DefaultState: Enabled

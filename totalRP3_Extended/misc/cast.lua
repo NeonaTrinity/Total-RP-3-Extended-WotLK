@@ -21,6 +21,12 @@ local loc = TRP3_API.locale.getText;
 
 local frame = TRP3_CastingBarFrame;
 
+-- Wrath 3.3.5 CastingBarFrameTemplate exposes its regions as global names
+-- instead of the later object fields used by Extended.
+frame.Spark = frame.Spark or _G[frame:GetName() .. "Spark"];
+frame.Flash = frame.Flash or _G[frame:GetName() .. "Flash"];
+frame.Text = frame.Text or _G[frame:GetName() .. "Text"];
+
 --*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 -- Casting bar
 --*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -35,9 +41,13 @@ end
 local function interrupt()
 	if frame.interruptMode == 2 then
 		frame:SetValue(frame.maxValue);
-		frame:SetStatusBarColor(frame.failedCastColor:GetRGB());
-		frame.Spark:Hide();
-		frame.Text:SetText(INTERRUPTED);
+		if frame.failedCastColor and frame.failedCastColor.GetRGB then
+			frame:SetStatusBarColor(frame.failedCastColor:GetRGB());
+		else
+			frame:SetStatusBarColor(1.0, 0.0, 0.0);
+		end
+		if frame.Spark then frame.Spark:Hide(); end
+		if frame.Text then frame.Text:SetText(INTERRUPTED); end
 		frame.casting = nil;
 		frame.channeling = nil;
 		frame.fadeOut = true;
@@ -54,13 +64,21 @@ function TRP3_API.extended.showCastingBar(duration, interruptMode, class, soundI
 		return;
 	end
 
-	local startColor = CastingBarFrame_GetEffectiveStartColor(frame, false, interruptMode ~= 2);
-	frame:SetStatusBarColor(startColor:GetRGB());
+	local startR, startG, startB = 1.0, 0.7, 0.0;
+	if CastingBarFrame_GetEffectiveStartColor then
+		local startColor = CastingBarFrame_GetEffectiveStartColor(frame, false, interruptMode ~= 2);
+		if startColor and startColor.GetRGB then
+			startR, startG, startB = startColor:GetRGB();
+		end
+	end
+	frame:SetStatusBarColor(startR, startG, startB);
 
-	if frame.flashColorSameAsStart then
-		frame.Flash:SetVertexColor(startColor:GetRGB());
-	else
-		frame.Flash:SetVertexColor(1, 1, 1);
+	if frame.Flash then
+		if frame.flashColorSameAsStart then
+			frame.Flash:SetVertexColor(startR, startG, startB);
+		else
+			frame.Flash:SetVertexColor(1, 1, 1);
+		end
 	end
 
 	frame.castID = Utils.str.id();
@@ -72,20 +90,24 @@ function TRP3_API.extended.showCastingBar(duration, interruptMode, class, soundI
 
 
 	if castText and castText:len() > 0 then
-		frame.Text:SetText(castText);
+		if frame.Text then frame.Text:SetText(castText); end
 	elseif class and class.US and class.US.AC then
-		frame.Text:SetText(class.US.AC);
+		if frame.Text then frame.Text:SetText(class.US.AC); end
 	else
-		frame.Text:SetText(loc("IT_CAST"));
+		if frame.Text then frame.Text:SetText(loc("IT_CAST")); end
 	end
 
-	CastingBarFrame_ApplyAlpha(frame, 1.0);
+	if CastingBarFrame_ApplyAlpha then
+		CastingBarFrame_ApplyAlpha(frame, 1.0);
+	else
+		frame:SetAlpha(1.0);
+	end
 	frame.holdTime = 0;
 	frame.casting = true;
 	frame.channeling = nil;
 	frame.fadeOut = nil;
 
-	frame.Spark:Show();
+	if frame.Spark then frame.Spark:Show(); end
 
 	frame:Show();
 
@@ -135,7 +157,11 @@ local function onUpdate(self, elapsed)
 	elseif ( self.fadeOut ) then
 		local alpha = self:GetAlpha() - CASTING_BAR_ALPHA_STEP;
 		if ( alpha > 0 ) then
-			CastingBarFrame_ApplyAlpha(self, alpha);
+			if CastingBarFrame_ApplyAlpha then
+				CastingBarFrame_ApplyAlpha(self, alpha);
+			else
+				self:SetAlpha(alpha);
+			end
 		else
 			self.fadeOut = nil;
 			self:Hide();

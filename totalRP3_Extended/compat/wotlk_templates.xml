@@ -201,8 +201,11 @@
                     <Button name="$parentRotateLeftButton" inherits="UIPanelButtonTemplate" text="&lt;">
                         <Size x="24" y="20"/><Anchors><Anchor point="LEFT"/></Anchors>
                     </Button>
+                    <Button name="$parentRotateRightButton" inherits="UIPanelButtonTemplate" text="&gt;">
+                        <Size x="24" y="20"/><Anchors><Anchor point="LEFT" relativeTo="$parentRotateLeftButton" relativePoint="RIGHT" x="2"/></Anchors>
+                    </Button>
                     <Button name="$parentZoomInButton" inherits="UIPanelButtonTemplate" text="+">
-                        <Size x="24" y="20"/><Anchors><Anchor point="LEFT" relativeTo="$parentRotateLeftButton" relativePoint="RIGHT"/></Anchors>
+                        <Size x="24" y="20"/><Anchors><Anchor point="LEFT" relativeTo="$parentRotateRightButton" relativePoint="RIGHT"/></Anchors>
                     </Button>
                     <Button name="$parentZoomOutButton" inherits="UIPanelButtonTemplate" text="-">
                         <Size x="24" y="20"/><Anchors><Anchor point="LEFT" relativeTo="$parentZoomInButton" relativePoint="RIGHT"/></Anchors>

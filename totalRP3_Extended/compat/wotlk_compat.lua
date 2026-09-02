@@ -6,7 +6,7 @@
 --------------------------------------------------------------------------------
 
 TRP3X_WOTLK = TRP3X_WOTLK or {};
-TRP3X_WOTLK.alpha = "9";
+TRP3X_WOTLK.alpha = "12";
 -- The stock WotLK TRP3 toolbar crashes when an addon registers its first button
 -- because toolbar.lua assumes GetPushedTexture() is non-nil. Keep the public
 -- base addon untouched and suppress Extended toolbar registration for now.
@@ -499,14 +499,21 @@ do
             return true;
         end
     end
+    local wotlkSoundIDPaths = {
+        -- IDs used by the bundled 1.0.7 Simple Rifle demo. Wrath has no
+        -- PlaySoundKitID API, so map them to the equivalent local MPQ sounds.
+        [1147] = "Sound\\Item\\Weapons\\Gun\\GunLoad01.wav",
+        [37089] = "Sound\\Item\\Weapons\\Gun\\GunFire01.wav",
+    };
     if not music.playSoundID then
         function music.playSoundID(soundID, channel, source)
             if soundID == nil then return nil; end
             if type(soundID) == "number" and PlaySoundKitID then
                 pcall(PlaySoundKitID, soundID);
-            elseif PlaySound then
-                local ok = pcall(PlaySound, soundID);
-                if not ok then pcall(PlaySound, tostring(soundID)); end
+            elseif type(soundID) == "number" and wotlkSoundIDPaths[soundID] and PlaySoundFile then
+                pcall(PlaySoundFile, wotlkSoundIDPaths[soundID]);
+            elseif type(soundID) ~= "number" and PlaySound then
+                pcall(PlaySound, soundID);
             end
             return remember(soundID, channel or "SFX", source);
         end
@@ -623,8 +630,10 @@ QuestFont_Huge = QuestFont_Huge or GameFontNormalLarge or GameFontNormal;
 -- Development/fallback access to the ground-item search while stock TRP3 toolbar
 -- integration remains disabled on the WotLK backport. /trpext search scans for
 -- items dropped by this character near the current position.
-SLASH_TRP3XEXT1 = SLASH_TRP3XEXT1 or "/trpext";
-SlashCmdList["TRP3XEXT"] = SlashCmdList["TRP3XEXT"] or function(msg)
+SLASH_TRP3XEXT1 = "/trpext";
+SLASH_TRP3XEXT2 = "/trptext"; -- common typo kept as a friendly alias
+SLASH_TRP3XEXT3 = "/trpextended";
+SlashCmdList["TRP3XEXT"] = function(msg)
     msg = string.lower(tostring(msg or ""));
     if msg == "search" and TRP3_API.inventory and TRP3_API.inventory.searchForItems then
         TRP3_API.inventory.searchForItems();

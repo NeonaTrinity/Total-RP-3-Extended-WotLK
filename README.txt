@@ -14,12 +14,23 @@ Install these folders beside the unmodified public WotLK TRP3 backport:
 
 Do NOT replace totalRP3 or totalRP3_Data.
 
-Alpha 10 highlights:
-- disables only the unsupported post-Wrath guided tutorial overlay so Tools can initialize
-- explicitly registers TRP3_ITEM_USED, TRP3_SIGNAL, TRP3_KILL, and TRP3_EMOTE synthetic events
-- fixes custom Extended popup layering so object browsers display instead of a blank legacy popup frame
-- remaps bundled post-Wrath demo icons to WotLK-safe equivalents (including the Dice Cup)
-- retains all Alpha 1-9 compatibility work
+TRP3 Extended WotLK Alpha 12
+============================
+
+This build keeps the public totalRP3 / totalRP3_Data WotLK backport untouched.
+
+Alpha 12 functional compatibility pass:
+- Wrath casting-bar compatibility (Arcano-Casino and other cast effects)
+- Wrath macro icon-index conversion for campaign LOOK/LISTEN/ACTION/TALK macros
+- strict boolean per-character CreateMacro argument
+- wearable placement drag fixes and clearer marker/animation-time labels
+- RP trade OnHide cleanup so closing/cancelling releases suspended inventory slots
+- /trpext, /trptext and /trpextended slash aliases; `search` scans nearby dropped items
+- bundled Simple Rifle numeric sounds mapped to Wrath gun-load/gun-fire MPQ paths
+
+Wearable note: Extended 1.0.7 does not attach a 3D item model/transmog appearance.
+The wearable flag exposes an inspection-location marker; position/pose are configured
+from the green locator button beside the item in the player RP inventory.
 
 
 This project is a fork of Total RP 3 Extended, https://github.com/Total-RP/Total-RP-3-Extended, originally licensed under the Apache License 2.0.

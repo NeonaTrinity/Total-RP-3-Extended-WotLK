@@ -355,7 +355,9 @@ local function removeItem(index)
 	sendCurrentState();
 end
 
+local closingTransaction = false;
 local function closeTransaction()
+	closingTransaction = true;
 	wipe(currentDownloads);
 	if exchangeFrame.myData then
 		for _, exchangeSlot in pairs(exchangeFrame.myData) do
@@ -373,6 +375,7 @@ local function closeTransaction()
 	exchangeFrame.yourData = nil;
 	exchangeFrame.targetID = nil;
 	exchangeFrame:Hide();
+	closingTransaction = false;
 end
 
 local function cancelExchange()
@@ -585,6 +588,12 @@ function exchangeFrame.init()
 
 	exchangeFrame.cancel:SetText(CANCEL);
 	exchangeFrame.cancel:SetScript("OnClick", function() cancelExchange() end);
+	exchangeFrame:SetScript("OnHide", function()
+		if not closingTransaction and (exchangeFrame.targetID or exchangeFrame.myData or exchangeFrame.yourData) then
+			if exchangeFrame.targetID then sendCancel(); end
+			closeTransaction();
+		end
+	end);
 	exchangeFrame.ok:SetText(TRADE);
 	exchangeFrame.ok:SetScript("OnClick", function() confirmExchangeAction() end);
 

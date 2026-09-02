@@ -99,7 +99,7 @@ local function showDocumentClass(document, documentID, parentArgs)
 		setFrameSize(documentFrame:GetWidth(), documentFrame:GetHeight());
 	end;
 
-	HTMLFrame:SetTextColor("p", 0.2824, 0.0157, 0.0157);
+	HTMLFrame:SetTextColor("p", 0.05, 0.03, 0.02); -- WotLK-safe near-black parchment text
 	HTMLFrame:SetShadowOffset("p", 0, 0);
 	HTMLFrame:SetTextColor("h1", 0, 0, 0);
 	HTMLFrame:SetShadowOffset("h1", 0, 0);

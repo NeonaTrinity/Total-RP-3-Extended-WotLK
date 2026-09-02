@@ -104,16 +104,13 @@
     </Frame>
 
     <Frame name="TRP3_StandardParchmentFrame" virtual="true">
-        <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
-            <BackgroundInsets left="8" right="8" top="8" bottom="8"/>
-            <TileSize val="32"/><EdgeSize val="32"/>
-        </Backdrop>
         <Scripts>
             <OnLoad>
-                -- Extended API 34 parchment frames expose two background texture
-                -- handles (bTile/bNotTile). API 11's backport does not. Create
-                -- them here so documents, quest pages and other parchment views
-                -- can swap tiled/non-tiled backgrounds exactly as 1.0.7 expects.
+                -- Do not put the API-11 dark DialogBox backdrop underneath the
+                -- document texture. Several historical paper textures contain
+                -- transparency; the dark backdrop showed through as a grey/black
+                -- filter. Let the selected parchment texture be the page itself.
+                if self.SetBackdrop then self:SetBackdrop(nil); end
                 if not self.bTile then
                     self.bTile = self:CreateTexture(nil, "BACKGROUND");
                     self.bTile:SetAllPoints(self);
@@ -123,6 +120,8 @@
                     self.bNotTile:SetAllPoints(self);
                     self.bNotTile:Hide();
                 end
+                if self.bTile.SetVertexColor then self.bTile:SetVertexColor(1, 1, 1, 1); end
+                if self.bNotTile.SetVertexColor then self.bNotTile:SetVertexColor(1, 1, 1, 1); end
             </OnLoad>
         </Scripts>
     </Frame>

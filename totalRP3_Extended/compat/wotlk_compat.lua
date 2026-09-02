@@ -6,10 +6,10 @@
 --------------------------------------------------------------------------------
 
 TRP3X_WOTLK = TRP3X_WOTLK or {};
-TRP3X_WOTLK.alpha = "14";
+TRP3X_WOTLK.alpha = "15";
 -- The stock WotLK TRP3 toolbar crashes when an addon registers its first button
 -- because toolbar.lua assumes GetPushedTexture() is non-nil. Keep the public
--- base addon untouched; Alpha 14 keeps the Extended buttons on a small
+-- base addon untouched; Alpha 15 keeps the Extended buttons on a small
 -- compatibility action bar instead of feeding them into the broken stock bar.
 TRP3X_WOTLK.disableStockToolbarIntegration = true;
 
@@ -482,19 +482,143 @@ API.ui.misc = API.ui.misc or {};
 
 
 -- API-34 text toolbar passes the toolbar frame itself; API-11 expects the
--- toolbar's global name prefix as a string. Bridge the signature in-place.
+-- toolbar's global name prefix as a string. The legacy callbacks also query the
+-- edit-box cursor *after* opening a modal popup; on this client that can lose
+-- the insertion position. Keep the stock H1/H2/H3/P behavior, then install
+-- Extended-safe icon/color/image/link callbacks that preserve the cursor.
 API.ui.text = API.ui.text or {};
 do
     local oldSetupToolbar = API.ui.text.setupToolbar;
+
+    local function insertAt(frame, index, value, cursorAdvance)
+        if not frame or not frame.GetText or not frame.SetText then return; end
+        index = tonumber(index) or 0;
+        local text = frame:GetText() or "";
+        if index < 0 then index = 0; end
+        if index > string.len(text) then index = string.len(text); end
+        frame:SetText(string.sub(text, 1, index) .. value .. string.sub(text, index + 1));
+        if frame.SetCursorPosition then
+            frame:SetCursorPosition(index + (cursorAdvance or string.len(value)));
+        end
+        if frame.SetFocus then frame:SetFocus(); end
+    end
+
+    local function hexByte(value)
+        value = math.floor((tonumber(value) or 0) + 0.5);
+        if value < 0 then value = 0; elseif value > 255 then value = 255; end
+        return string.format("%02x", value);
+    end
+
     if oldSetupToolbar and not TRP3X_WOTLK.textToolbarWrapperInstalled then
         API.ui.text.setupToolbar = function(toolbar, textFrame, ...)
+            local toolbarFrame = toolbar;
             if type(toolbar) ~= "string" then
                 if toolbar and toolbar.GetName then toolbar = toolbar:GetName(); end
             end
             if type(toolbar) ~= "string" or toolbar == "" then return; end
-            return oldSetupToolbar(toolbar, textFrame);
+
+            -- Preserve the API-11 header/alignment dropdown implementation.
+            oldSetupToolbar(toolbar, textFrame);
+
+            local iconButton = _G[toolbar .. "_Icon"];
+            local colorButton = _G[toolbar .. "_Color"];
+            local imageButton = _G[toolbar .. "_Image"];
+            local linkButton = _G[toolbar .. "_Link"];
+
+            if iconButton then
+                iconButton:SetScript("OnClick", function(self)
+                    local cursor = textFrame:GetCursorPosition() or 0;
+                    API.popup.showPopup(API.popup.ICONS,
+                        { parent = toolbarFrame or self, point = "BOTTOM", parentPoint = "TOP", y = 8 },
+                        { function(icon)
+                            local tag = ("{icon:%s:25}"):format(tostring(icon or "INV_Misc_QuestionMark"));
+                            insertAt(textFrame, cursor, tag);
+                        end });
+                end);
+            end
+            if colorButton then
+                colorButton:SetScript("OnClick", function(self)
+                    local cursor = textFrame:GetCursorPosition() or 0;
+                    API.popup.showColorBrowser(function(r, g, b)
+                        local openTag = ("{col:%s%s%s}"):format(hexByte(r), hexByte(g), hexByte(b));
+                        insertAt(textFrame, cursor, openTag .. "{/col}", string.len(openTag));
+                    end);
+                    local browser = _G.TRP3_ColorBrowser;
+                    if browser then
+                        browser:SetParent(UIParent);
+                        browser:SetFrameStrata("DIALOG");
+                        browser:ClearAllPoints();
+                        browser:SetPoint("BOTTOM", toolbarFrame or self, "TOP", 0, 8);
+                        if _G.TRP3_PopupsFrame then _G.TRP3_PopupsFrame:Hide(); end
+                        browser:Show();
+                    end
+                end);
+            end
+            if imageButton then
+                imageButton:SetScript("OnClick", function(self)
+                    local cursor = textFrame:GetCursorPosition() or 0;
+                    API.popup.showImageBrowser(function(image)
+                        if not image then return; end
+                        local width = math.min(tonumber(image.width) or 256, 512);
+                        local height = math.min(tonumber(image.height) or 256, 512);
+                        local tag = ("{img:%s:%d:%d}"):format(tostring(image.url or ""), width, height);
+                        insertAt(textFrame, cursor, tag);
+                    end);
+                    local browser = _G.TRP3_ImageBrowser;
+                    if browser then
+                        browser:SetParent(UIParent);
+                        browser:SetFrameStrata("DIALOG");
+                        browser:ClearAllPoints();
+                        browser:SetPoint("BOTTOM", toolbarFrame or self, "TOP", 0, 8);
+                        if _G.TRP3_PopupsFrame then _G.TRP3_PopupsFrame:Hide(); end
+                        browser:Show();
+                    end
+                end);
+            end
+            if linkButton then
+                linkButton:SetScript("OnClick", function(self)
+                    local cursor = textFrame:GetCursorPosition() or 0;
+                    local tag = "{link*URL*TEXT}";
+                    insertAt(textFrame, cursor, tag, 6);
+                    if textFrame.HighlightText then textFrame:HighlightText(cursor + 6, cursor + 9); end
+                end);
+            end
         end;
         TRP3X_WOTLK.textToolbarWrapperInstalled = true;
+    end
+end
+
+-- API-11 setupIconButton assumes the target texture is always the global
+-- <frame name>Icon. Extended's later XML often stores a child frame as .icon,
+-- whose actual texture is <child name>Icon. Resolve both layouts so one shim
+-- fixes workflow, campaign, document, stash and item editors together.
+do
+    local oldSetupIconButton = API.ui.frame.setupIconButton;
+    if oldSetupIconButton and not TRP3X_WOTLK.setupIconButtonWrapperInstalled then
+        API.ui.frame.setupIconButton = function(frame, icon)
+            if not frame then return; end
+            local texture;
+            local name = frame.GetName and frame:GetName();
+            if name then texture = _G[name .. "Icon"] or _G[name .. "icon"]; end
+            if not texture and frame.Icon then
+                if frame.Icon.SetTexture then texture = frame.Icon;
+                elseif frame.Icon.GetName then texture = _G[frame.Icon:GetName() .. "Icon"]; end
+            end
+            if not texture and frame.icon then
+                if frame.icon.SetTexture then texture = frame.icon;
+                elseif frame.icon.GetName then texture = _G[frame.icon:GetName() .. "Icon"]; end
+            end
+            if texture and texture.SetTexture then
+                texture:SetTexture("Interface\\ICONS\\" .. (icon or "INV_Misc_QuestionMark"));
+                return texture;
+            end
+            -- Fall back to API-11 for stock frames; keep Extended failures
+            -- non-fatal if a purely decorative frame has no icon region.
+            local ok, result = pcall(oldSetupIconButton, frame, icon);
+            if ok then return result; end
+            return nil;
+        end;
+        TRP3X_WOTLK.setupIconButtonWrapperInstalled = true;
     end
 end
 
@@ -922,7 +1046,21 @@ API.popup.showPopup = function(popupID, anchor, args)
     end
     args = args or {};
     if popupID == API.popup.ICONS and API.popup.showIconBrowser then
-        return API.popup.showIconBrowser(args[1], args[2], false);
+        API.popup.showIconBrowser(args[1], args[2], false);
+        local browser = _G.TRP3_IconBrowser;
+        if browser then
+            browser:SetParent(UIParent);
+            if browser.SetFrameStrata then browser:SetFrameStrata("DIALOG"); end
+            browser:ClearAllPoints();
+            if anchor and anchor.parent then
+                browser:SetPoint(anchor.point or "CENTER", anchor.parent, anchor.parentPoint or "CENTER", anchor.x or 0, anchor.y or 0);
+            else
+                browser:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
+            end
+            if _G.TRP3_PopupsFrame then _G.TRP3_PopupsFrame:Hide(); end
+            browser:Show();
+        end
+        return browser;
     elseif popupID == API.popup.MUSICS and API.popup.showMusicBrowser then
         return API.popup.showMusicBrowser(args[1]);
     elseif popupID == API.popup.COMPANIONS then

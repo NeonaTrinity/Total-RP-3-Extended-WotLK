@@ -1,3 +1,17 @@
+
+Alpha 15 focus:
+- Broad API-11 setupIconButton compatibility for Tools workflow/campaign/document editors.
+- Extended icon browsers now open as anchored DIALOG frames instead of behind/in the stock TRP3 popup container.
+- Document formatting toolbar preserves insertion cursor and inserts icon/color/image/link tags on WotLK.
+- Document parchment no longer has the dark DialogBox backdrop tint; paragraph text is near-black.
+- Shift-click RP item sharing uses a 3.3.5 server-safe text token; Alpha 15 clients render received tokens as clickable Extended item links.
+- Keeps Alpha 14 multiplayer custom-item object request/tooltip behavior for links.
+
+Known scope note:
+- Other players' stashes are live P2P objects; the owner must be online.
+- Depositing into another player's stash is not part of original 1.0.7 and is intentionally deferred until the original systems are stable.
+
+
 Alpha 14 changes:
 - Fixes wearable model OnMouseUp nil callback after moving the location marker.
 - Fixes Tools breadcrumb navigation by exposing the API-34 navBar.navList field.

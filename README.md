@@ -6,14 +6,14 @@ loads, TRP3 inventory, TRP3 Item creation.
 
 not yet working: workflows, campaigns, everything else.
 
+for use with TRP3 backport https://github.com/joyvanderveeken/Total-RP-3-WotLK, by joyvanderveeken
+
 <p align="center">
   <img src="images/rp_items_trade.jpg" width="500" alt="Description of image">
 </p>
 
-
-
-for use with TRP3 backport https://github.com/joyvanderveeken/Total-RP-3-WotLK, by joyvanderveeken
-
+# Install #
+- place in interface/addons folder
 Install these folders beside the unmodified public WotLK TRP3 backport:
   totalRP3_Extended
   totalRP3_Extended_Tools

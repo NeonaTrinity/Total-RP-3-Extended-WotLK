@@ -339,6 +339,27 @@ local function addToExchange(container, slotID)
 end
 TRP3_API.inventory.addToExchange = addToExchange;
 
+-- Open an empty RP exchange directly with the current target. Upstream 1.0.7
+-- primarily opens exchange by dragging an item onto a player; Alpha 13 exposes
+-- the same exchange window as a WotLK target action so the feature is discoverable.
+local function startExchangeWithUnit(unit)
+	unit = unit or "target";
+	if not UnitExists(unit) or not UnitIsPlayer(unit) or UnitIsUnit(unit, "player") then
+		return;
+	end
+	local targetID = Utils.str.getUnitID(unit);
+	if not targetID then return; end
+
+	exchangeFrame.targetID = targetID;
+	exchangeFrame.myData = exchangeFrame.myData or {};
+	exchangeFrame.yourData = exchangeFrame.yourData or {};
+	exchangeFrame.myData.ok = nil;
+	exchangeFrame.yourData.ok = nil;
+	drawUI();
+	sendCurrentState();
+end
+TRP3_API.inventory.startExchangeWithUnit = startExchangeWithUnit;
+
 local function removeItem(index)
 	assert(exchangeFrame.myData, "No exchangeFrame.myData");
 	assert(exchangeFrame.myData[tostring(index)], "Slot is already empty");
@@ -614,6 +635,30 @@ function exchangeFrame.init()
 	TRP3_API.events.listenToEvent(TRP3_API.security.EVENT_SECURITY_CHANGED, function(arg)
 		if exchangeFrame:IsVisible() then
 			reloadDownloads();
+		end
+	end);
+
+	-- WotLK restoration: add an explicit RP Trade action to the TRP3 target bar.
+	-- This supplements the original drag-an-item-onto-player gesture.
+	TRP3_API.events.listenToEvent(TRP3_API.events.WORKFLOW_ON_LOADED, function()
+		if TRP3_API.target then
+			TRP3_API.target.registerButton({
+				id = "aa_player_f_extended_trade",
+				onlyForType = TRP3_API.ui.misc.TYPE_CHARACTER,
+				configText = "RP Trade",
+				condition = function(_, unitID)
+					return UnitIsPlayer("target")
+						and unitID ~= Globals.player_id
+						and not TRP3_API.register.isIDIgnored(unitID)
+						and CheckInteractDistance("target", 2);
+				end,
+				onClick = function()
+					startExchangeWithUnit("target");
+				end,
+				tooltip = "RP Trade",
+				tooltipSub = "Open the Total RP 3 Extended item exchange with this player.",
+				icon = "INV_Misc_Coin_02"
+			});
 		end
 	end);
 

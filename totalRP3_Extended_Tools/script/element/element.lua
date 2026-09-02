@@ -99,22 +99,37 @@ local handleMouseWheel = TRP3_API.ui.list.handleMouseWheel;
 local CreateFrame = CreateFrame;
 local initList = TRP3_API.ui.list.initList;
 local safeMatch = TRP3_API.utils.str.safeMatch;
+local ID_SEPARATOR = TRP3_API.extended.ID_SEPARATOR;
 local filteredObjectList = {};
+local filteredObjectBrowser;
 
 local function onBrowserClose()
 	TRP3_API.popup.hidePopups();
 	objectBrowser:Hide();
 end
 
-local function onBrowserLineClick(frame)
+local function onBrowserLineClick(frame, mouseButton)
+	local objectID = frame.objectID;
+	if mouseButton == "RightButton" and objectID then
+		local rootID = ({strsplit(ID_SEPARATOR, objectID)})[1];
+		if objectID == rootID and TRP3_API.extended.isObjectMine(rootID) then
+			local class = getClass(rootID);
+			local _, name = TRP3_API.extended.tools.getClassDataSafeByType(class);
+			TRP3_API.popup.showConfirmPopup(loc("DB_REMOVE_OBJECT_POPUP"):format(rootID, name or UNKNOWN), function()
+				TRP3_API.extended.removeObject(rootID);
+				if filteredObjectBrowser then filteredObjectBrowser(); end
+			end);
+			return;
+		end
+	end
+
 	onBrowserClose();
 	if objectBrowser.onSelectCallback then
-		objectBrowser.onSelectCallback(frame.objectID);
+		objectBrowser.onSelectCallback(objectID);
 	end
 end
 
 local getTypeLocale = TRP3_API.extended.tools.getTypeLocale;
-local ID_SEPARATOR = TRP3_API.extended.ID_SEPARATOR;
 local color = "|cffffff00";
 local fieldFormat = "%s: " .. color .. "%s|r";
 
@@ -136,6 +151,9 @@ local function decorateBrowserLine(frame, index)
 	text = text .. fieldFormat:format(loc("TYPE"), getTypeLocale(class.TY));
 	text = text .. "\n" .. fieldFormat:format(loc("ROOT_CREATED_BY"), metadata.CB or "?");
 	text = text .. "\n" .. fieldFormat:format(loc("SEC_LEVEL"), TRP3_API.security.getSecurityText(rootClass.securityLevel or SECURITY_LEVEL.LOW));
+	if objectID == parts[1] and TRP3_API.extended.isObjectMine(parts[1]) then
+		text = text .. "\n\n|cffffff00Right-click:|r |cffff4444Delete this creation|r";
+	end
 
 	if class.TY == TRP3_DB.types.ITEM then
 		local base = class.BA or EMPTY;
@@ -172,7 +190,7 @@ local function filterMatch(filter, value)
 	return safeMatch(value:lower(), filter:lower());
 end
 
-local function filteredObjectBrowser()
+filteredObjectBrowser = function()
 	local filter = objectBrowser.filter.box:GetText();
 	wipe(filteredObjectList);
 
@@ -224,6 +242,7 @@ function objectBrowser.init()
 	for line = 0, 8 do
 		local button = CreateFrame("Button", "TRP3_ObjectBrowserButton_" .. line, objectBrowser.content, "TRP3_MusicBrowserLine");
 		button:SetPoint("TOP", objectBrowser.content, "TOP", 0, -10 + (line * (-31)));
+		button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 		button:SetScript("OnClick", onBrowserLineClick);
 		tinsert(objectBrowser.widgetTab, button);
 	end

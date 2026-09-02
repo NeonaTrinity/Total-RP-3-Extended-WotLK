@@ -278,7 +278,7 @@ end
 
 local function initPlayerInventoryButton()
 	local playerInvText = loc("INV_PAGE_PLAYER_INV"):format(Globals.player);
-	if TRP3_API.toolbar and not TRP3X_WOTLK.disableStockToolbarIntegration then
+	if TRP3X_WOTLK and TRP3X_WOTLK.registerToolbarButton then
 		local toolbarButton = {
 			id = "hh_player_d_inventory",
 			configText = loc("INV_PAGE_CHARACTER_INV"),
@@ -289,7 +289,7 @@ local function initPlayerInventoryButton()
 				onToolbarButtonClicked(buttonType);
 			end,
 		};
-		TRP3_API.toolbar.toolbarAddButton(toolbarButton);
+		TRP3X_WOTLK.registerToolbarButton(toolbarButton);
 	end
 end
 

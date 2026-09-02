@@ -944,10 +944,10 @@ function dropFrame.init()
 	-- UI
 	-- Button on toolbar
 	TRP3_API.events.listenToEvent(TRP3_API.events.WORKFLOW_ON_LOADED, function()
-		if TRP3_API.toolbar and not TRP3X_WOTLK.disableStockToolbarIntegration then
+		if TRP3X_WOTLK and TRP3X_WOTLK.registerToolbarButton then
 			local toolbarButton = {
 				id = "bb_extended_drop",
-				icon = "icon_treasuremap",
+				icon = "INV_Misc_Map_01",
 				configText = loc("DR_SEARCH_BUTTON"),
 				tooltip = loc("DR_SYSTEM"),
 				tooltipSub = loc("DR_SYSTEM_TT"),
@@ -956,7 +956,7 @@ function dropFrame.init()
 				end,
 				visible = 1
 			};
-			TRP3_API.toolbar.toolbarAddButton(toolbarButton);
+			TRP3X_WOTLK.registerToolbarButton(toolbarButton);
 		end
 	end);
 

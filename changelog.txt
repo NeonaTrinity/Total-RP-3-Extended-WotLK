@@ -1,0 +1,53 @@
+
+Alpha 13 restoration / compatibility pass
+------------------------------------------
+- Adapts Extended's later communication progress API to the API-11 WotLK
+  transport so custom item definitions can be requested during RP trades.
+- Restores the five historical Extended toolbar entries on a separate movable
+  WotLK-safe action bar instead of using the broken stock TRP3 toolbar path:
+    * RP Inventory
+    * Ground Items / Stashes
+    * Quest Log / Campaign Actions
+    * Sound History
+    * Extended Tools
+- Adds an RP Trade action to the TRP3 target-action frame.
+- Restores target inventory inspection without requiring the later
+  character.extended capability flag that the WotLK backport does not send.
+- Shows a custom item icon while dragging RP inventory items.
+- Adds right-click deletion of owned root creations in the Add Item/object
+  browser, with confirmation.
+- Re-enables basic Extended Tools guided tutorials using Wrath GameTooltip and
+  a simple highlight border.
+- Keeps container opening on double-click; this is original 1.0.7 behavior.
+- Keeps individual ground drops local to the dropper, matching the original
+  local TRP3_Drop search design. Shared stashes use the multiplayer protocol.
+
+Known fidelity limitation
+-------------------------
+The historical TRP-Anim-DB git submodule was absent from the 1.0.7 archive.
+The WotLK port still uses compatibility fallbacks for model animation/scaling.
+This does not prevent inventory, items, quests, documents, dialogues, or
+creation tools from loading, but exact historical model scaling/animation is
+not yet fully restored.
+
+
+
+-----------------------
+
+TRP3 Extended WotLK Alpha 12
+============================
+
+This build keeps the public totalRP3 / totalRP3_Data WotLK backport untouched.
+
+Alpha 12 functional compatibility pass:
+- Wrath casting-bar compatibility (Arcano-Casino and other cast effects)
+- Wrath macro icon-index conversion for campaign LOOK/LISTEN/ACTION/TALK macros
+- strict boolean per-character CreateMacro argument
+- wearable placement drag fixes and clearer marker/animation-time labels
+- RP trade OnHide cleanup so closing/cancelling releases suspended inventory slots
+- /trpext, /trptext and /trpextended slash aliases; `search` scans nearby dropped items
+- bundled Simple Rifle numeric sounds mapped to Wrath gun-load/gun-fire MPQ paths
+
+Wearable note: Extended 1.0.7 does not attach a 3D item model/transmog appearance.
+The wearable flag exposes an inspection-location marker; position/pose are configured
+from the green locator button beside the item in the player RP inventory.

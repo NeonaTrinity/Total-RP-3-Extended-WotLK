@@ -6,14 +6,220 @@
 --------------------------------------------------------------------------------
 
 TRP3X_WOTLK = TRP3X_WOTLK or {};
-TRP3X_WOTLK.alpha = "12";
+TRP3X_WOTLK.alpha = "13";
 -- The stock WotLK TRP3 toolbar crashes when an addon registers its first button
 -- because toolbar.lua assumes GetPushedTexture() is non-nil. Keep the public
--- base addon untouched and suppress Extended toolbar registration for now.
+-- base addon untouched; Alpha 13 restores the Extended buttons on a small
+-- compatibility action bar instead of feeding them into the broken stock bar.
 TRP3X_WOTLK.disableStockToolbarIntegration = true;
 
 local API = TRP3_API;
 if not API then return; end
+
+
+-- ---------------------------------------------------------------------------
+-- API-11 communication compatibility.
+--
+-- Extended 1.0.7 was written against a later TRP3 communication layer that
+-- exposed reserved message IDs and per-message progress callbacks. The public
+-- WotLK backport transports the same request/response objects by protocol
+-- prefix, but those two cosmetic/progress helpers do not exist and sendObject
+-- ignores the later fifth "message id" argument.
+--
+-- Provide harmless reservation tokens and a no-op progress hook. Functional
+-- request/response delivery still goes through API-11's native sendObject().
+-- ---------------------------------------------------------------------------
+API.communication = API.communication or {};
+if not API.communication.getMessageIDAndIncrement then
+    local trp3xCompatMessageID = 0;
+    function API.communication.getMessageIDAndIncrement()
+        trp3xCompatMessageID = trp3xCompatMessageID + 1;
+        if trp3xCompatMessageID > 999999 then trp3xCompatMessageID = 1; end
+        return "W" .. tostring(trp3xCompatMessageID);
+    end
+end
+if not API.communication.addMessageIDHandler then
+    function API.communication.addMessageIDHandler()
+        -- API 11 has no packet-progress callback layer. Completion is detected
+        -- by the normal Extended response protocol instead.
+        return false;
+    end
+end
+
+-- ---------------------------------------------------------------------------
+-- WotLK-safe Extended action bar.
+--
+-- We intentionally do not patch totalRP3/modules/toolbar/toolbar.lua. Instead,
+-- all historical Extended toolbar entries are routed here when the public
+-- backport's stock toolbar integration is disabled.
+-- ---------------------------------------------------------------------------
+TRP3X_WOTLK.actionButtons = TRP3X_WOTLK.actionButtons or {};
+TRP3X_WOTLK.actionButtonOrder = TRP3X_WOTLK.actionButtonOrder or {};
+
+local function ensureTRP3XActionBar()
+    if TRP3X_WOTLK.actionBar then return TRP3X_WOTLK.actionBar; end
+
+    local bar = CreateFrame("Frame", "TRP3X_WotLKActionBar", UIParent);
+    bar:SetWidth(48);
+    bar:SetHeight(40);
+    bar:SetPoint("TOP", UIParent, "TOP", 0, -72);
+    bar:SetFrameStrata("HIGH");
+    bar:SetMovable(true);
+    bar:EnableMouse(true);
+    bar:RegisterForDrag("LeftButton");
+
+    local bg = bar:CreateTexture(nil, "BACKGROUND");
+    bg:SetAllPoints(bar);
+    bg:SetTexture("Interface\\Tooltips\\UI-Tooltip-Background");
+    if bg.SetVertexColor then bg:SetVertexColor(0, 0, 0, 0.72); end
+    bar.background = bg;
+
+    bar:SetScript("OnDragStart", function(self)
+        self:StartMoving();
+    end);
+    bar:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing();
+    end);
+
+    TRP3X_WOTLK.actionBar = bar;
+    return bar;
+end
+
+local function refreshTRP3XActionBar()
+    local bar = ensureTRP3XActionBar();
+    local visibleCount = 0;
+    for _, id in ipairs(TRP3X_WOTLK.actionButtonOrder) do
+        local entry = TRP3X_WOTLK.actionButtons[id];
+        if entry and entry.button then
+            local shouldShow = entry.structure.visible ~= false;
+            if shouldShow then
+                visibleCount = visibleCount + 1;
+                entry.button:ClearAllPoints();
+                entry.button:SetPoint("LEFT", bar, "LEFT", 7 + ((visibleCount - 1) * 34), 0);
+                entry.button:Show();
+            else
+                entry.button:Hide();
+            end
+        end
+    end
+    if visibleCount > 0 then
+        bar:SetWidth(14 + visibleCount * 34);
+        bar:Show();
+    else
+        bar:Hide();
+    end
+end
+
+function TRP3X_WOTLK.registerToolbarButton(structure)
+    if not structure or not structure.id then return; end
+
+    if not TRP3X_WOTLK.disableStockToolbarIntegration and API.toolbar and API.toolbar.toolbarAddButton then
+        return API.toolbar.toolbarAddButton(structure);
+    end
+
+    if TRP3X_WOTLK.actionButtons[structure.id] then
+        TRP3X_WOTLK.actionButtons[structure.id].structure = structure;
+        refreshTRP3XActionBar();
+        return;
+    end
+
+    local bar = ensureTRP3XActionBar();
+    local index = #TRP3X_WOTLK.actionButtonOrder + 1;
+    local button = CreateFrame("Button", "TRP3X_WotLKActionButton" .. index, bar);
+    button:SetWidth(30);
+    button:SetHeight(30);
+    button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+
+    local icon = button:CreateTexture(nil, "ARTWORK");
+    icon:SetAllPoints(button);
+    icon:SetTexture("Interface\\ICONS\\" .. (structure.icon or "INV_Misc_QuestionMark"));
+    button.Icon = icon;
+
+    local highlight = button:CreateTexture(nil, "HIGHLIGHT");
+    highlight:SetAllPoints(button);
+    highlight:SetTexture("Interface\\Buttons\\ButtonHilight-Square");
+    highlight:SetBlendMode("ADD");
+
+    button:SetScript("OnClick", function(self, mouseButton)
+        local current = TRP3X_WOTLK.actionButtons[structure.id];
+        local data = current and current.structure or structure;
+        if data and data.onClick then
+            data.onClick(self, data, mouseButton);
+        end
+    end);
+    button:SetScript("OnEnter", function(self)
+        local current = TRP3X_WOTLK.actionButtons[structure.id];
+        local data = current and current.structure or structure;
+        if data and data.onEnter then data.onEnter(self, data); end
+        if GameTooltip and data then
+            GameTooltip:SetOwner(self, "ANCHOR_BOTTOM");
+            GameTooltip:SetText(data.tooltip or data.configText or structure.id, 1, 1, 1);
+            if data.tooltipSub and data.tooltipSub ~= "" then
+                GameTooltip:AddLine(data.tooltipSub, 1, 0.82, 0, true);
+            end
+            GameTooltip:Show();
+        end
+    end);
+    button:SetScript("OnLeave", function(self)
+        local current = TRP3X_WOTLK.actionButtons[structure.id];
+        local data = current and current.structure or structure;
+        if data and data.onLeave then data.onLeave(self, data); end
+        if GameTooltip then GameTooltip:Hide(); end
+    end);
+
+    button._trp3xElapsed = 0;
+    button:SetScript("OnUpdate", function(self, elapsed)
+        self._trp3xElapsed = (self._trp3xElapsed or 0) + elapsed;
+        if self._trp3xElapsed >= 0.2 then
+            self._trp3xElapsed = 0;
+            local current = TRP3X_WOTLK.actionButtons[structure.id];
+            local data = current and current.structure or structure;
+            if data and data.onUpdate then data.onUpdate(self, data); end
+            if data and data.icon and self.Icon then
+                self.Icon:SetTexture("Interface\\ICONS\\" .. data.icon);
+            end
+        end
+    end);
+
+    TRP3X_WOTLK.actionButtons[structure.id] = { structure = structure, button = button };
+    table.insert(TRP3X_WOTLK.actionButtonOrder, structure.id);
+    refreshTRP3XActionBar();
+end
+
+-- ---------------------------------------------------------------------------
+-- Custom drag icon for RP inventory items.
+-- WotLK's SetCursor() does not reliably accept arbitrary item texture paths.
+-- ---------------------------------------------------------------------------
+local function ensureTRP3XDragIcon()
+    if TRP3X_WOTLK.dragIconFrame then return TRP3X_WOTLK.dragIconFrame; end
+    local frame = CreateFrame("Frame", "TRP3X_WotLKDragIcon", UIParent);
+    frame:SetWidth(34);
+    frame:SetHeight(34);
+    frame:SetFrameStrata("TOOLTIP");
+    frame:EnableMouse(false);
+    local icon = frame:CreateTexture(nil, "OVERLAY");
+    icon:SetAllPoints(frame);
+    frame.Icon = icon;
+    frame:SetScript("OnUpdate", function(self)
+        local x, y = GetCursorPosition();
+        local scale = UIParent:GetEffectiveScale();
+        self:ClearAllPoints();
+        self:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x / scale, y / scale);
+    end);
+    frame:Hide();
+    TRP3X_WOTLK.dragIconFrame = frame;
+    return frame;
+end
+
+function TRP3X_WOTLK.showDragIcon(iconName)
+    local frame = ensureTRP3XDragIcon();
+    frame.Icon:SetTexture("Interface\\ICONS\\" .. (iconName or "INV_Misc_QuestionMark"));
+    frame:Show();
+end
+
+function TRP3X_WOTLK.hideDragIcon()
+    if TRP3X_WOTLK.dragIconFrame then TRP3X_WOTLK.dragIconFrame:Hide(); end
+end
 
 
 -- ---------------------------------------------------------------------------
@@ -617,19 +823,44 @@ if not API.slash.rollDices then
     end
 end
 
--- Tutorial helpers appeared after the base backport. They are cosmetic.
+-- Tutorial helpers appeared after the base backport. Re-create the small
+-- guided tooltip with the stock Wrath GameTooltip so the Extended Tools
+-- tutorials can be enabled again.
 API.navigation = API.navigation or {};
-API.navigation.showTutorialTooltip = API.navigation.showTutorialTooltip or function() end;
-API.navigation.hideTutorialTooltip = API.navigation.hideTutorialTooltip or function() end;
+if not API.navigation.showTutorialTooltip then
+    function API.navigation.showTutorialTooltip(anchor)
+        if not anchor or not GameTooltip then return; end
+        GameTooltip:Hide();
+        GameTooltip:SetOwner(anchor, "ANCHOR_NONE");
+        GameTooltip:ClearAllPoints();
+        local arrow = anchor.arrow or "RIGHT";
+        if arrow == "DOWN" then
+            GameTooltip:SetPoint("BOTTOM", anchor, "TOP", 0, 8);
+        elseif arrow == "UP" then
+            GameTooltip:SetPoint("TOP", anchor, "BOTTOM", 0, -8);
+        elseif arrow == "LEFT" then
+            GameTooltip:SetPoint("RIGHT", anchor, "LEFT", -8, 0);
+        else
+            GameTooltip:SetPoint("LEFT", anchor, "RIGHT", 8, 0);
+        end
+        GameTooltip:SetText(anchor.text or "", 1, 1, 1, true);
+        GameTooltip:Show();
+    end
+end
+if not API.navigation.hideTutorialTooltip then
+    function API.navigation.hideTutorialTooltip()
+        if GameTooltip then GameTooltip:Hide(); end
+    end
+end
 
 -- Fonts referenced by Extended documents/quest HTML on later clients.
 -- Use the closest stock Wrath font objects when those globals are absent.
 DestinyFontHuge = DestinyFontHuge or GameFontNormalHuge or GameFontNormalLarge;
 QuestFont_Huge = QuestFont_Huge or GameFontNormalLarge or GameFontNormal;
 
--- Development/fallback access to the ground-item search while stock TRP3 toolbar
--- integration remains disabled on the WotLK backport. /trpext search scans for
--- items dropped by this character near the current position.
+-- Command-line fallback for ground-item search. Alpha 13 also restores the
+-- historical Extended search button on its own compatibility action bar.
+-- /trpext search remains useful for testing and accessibility.
 SLASH_TRP3XEXT1 = "/trpext";
 SLASH_TRP3XEXT2 = "/trptext"; -- common typo kept as a friendly alias
 SLASH_TRP3XEXT3 = "/trpextended";

@@ -311,7 +311,11 @@ end
 local function slotOnDragStart(self)
 	if self.info and not TRP3_API.inventory.isInTransaction(self.info) then
 		StackSplitFrame:Hide();
-		SetCursor("Interface\\ICONS\\" .. ((self.class and self.class.BA.IC) or "inv_misc_questionmark")) ;
+		if TRP3X_WOTLK and TRP3X_WOTLK.showDragIcon then
+			TRP3X_WOTLK.showDragIcon((self.class and self.class.BA.IC) or "inv_misc_questionmark");
+		else
+			SetCursor("ITEM_CURSOR");
+		end
 		if self.additionalOnDragHandler then
 			self.additionalOnDragHandler(self);
 		end
@@ -410,6 +414,9 @@ end
 local UnitExists, CheckInteractDistance, UnitIsPlayer = UnitExists, CheckInteractDistance, UnitIsPlayer;
 
 local function slotOnDragStop(slotFrom)
+	if TRP3X_WOTLK and TRP3X_WOTLK.hideDragIcon then
+		TRP3X_WOTLK.hideDragIcon();
+	end
 	ResetCursor();
 	if slotFrom.info and not TRP3_API.inventory.isInTransaction(slotFrom.info) then
 		local slotTo = GetMouseFocus();

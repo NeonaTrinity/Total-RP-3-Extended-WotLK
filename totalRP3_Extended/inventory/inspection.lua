@@ -47,6 +47,7 @@ local function receiveResponse(response, sender)
 		inspectionFrame.Main.Model.WeightText:Show();
 		inspectionFrame.Main.Model.ValueText:Show();
 
+		inspectionFrame.Main.Model.Loading:Hide();
 		for _, button in pairs(inspectionFrame.Main.slots) do
 			local slotInfo = (response.slots or EMPTY)[button.slotID];
 			if slotInfo then
@@ -109,6 +110,12 @@ local function sendRequest()
 		end
 	end);
 	Comm.sendObject(INSPECTION_REQUEST, data, inspectionFrame.current, REQUEST_PRIORITY);
+	local requestedPlayer = inspectionFrame.current;
+	C_Timer.After(4, function()
+		if inspectionFrame:IsVisible() and inspectionFrame.current == requestedPlayer and inspectionFrame.Main.Model.Loading:IsShown() then
+			inspectionFrame.Main.Model.Loading:SetText("No TRP3 Extended inventory response.");
+		end
+	end);
 end
 
 --*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -197,13 +204,15 @@ function inspectionFrame.init()
 				onlyForType = TRP3_API.ui.misc.TYPE_CHARACTER,
 				configText = loc("INV_PAGE_CHARACTER_INSPECTION"),
 				condition = function(_, unitID)
-					if UnitIsPlayer("target") and unitID ~= Globals.player_id and not TRP3_API.register.isIDIgnored(unitID) and CheckInteractDistance("target", 1) then
-						if TRP3_API.register.isUnitKnown("target") then
-							local character = TRP3_API.register.getUnitIDCharacter(Utils.str.getUnitID("target"));
-							return (tonumber(character.extended or 0) or 0) > 0;
-						end
-					end
-					return false;
+					-- The API-11 WotLK backport does not advertise the later
+					-- character.extended capability flag. Show the inspection action
+					-- for any known nearby TRP3 player; players without Extended will
+					-- simply not answer the Extended inspection protocol.
+					return UnitIsPlayer("target")
+						and unitID ~= Globals.player_id
+						and not TRP3_API.register.isIDIgnored(unitID)
+						and CheckInteractDistance("target", 1)
+						and TRP3_API.register.isUnitKnown("target");
 				end,
 				onClick = function(_, _, buttonType, _)
 					onToolbarButtonClicked();

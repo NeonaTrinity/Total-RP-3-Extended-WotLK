@@ -566,7 +566,7 @@ local function init()
 
 	-- Quest log button on target bar
 	TRP3_API.events.listenToEvent(TRP3_API.events.WORKFLOW_ON_LOADED, function()
-		if TRP3_API.toolbar and not TRP3X_WOTLK.disableStockToolbarIntegration then
+		if TRP3X_WOTLK and TRP3X_WOTLK.registerToolbarButton then
 			local toolbarButton = {
 				id = "hh_player_e_quest",
 				icon = "achievement_quests_completed_06",
@@ -597,7 +597,7 @@ local function init()
 				end,
 				visible = 1
 			};
-			TRP3_API.toolbar.toolbarAddButton(toolbarButton);
+			TRP3X_WOTLK.registerToolbarButton(toolbarButton);
 		end
 	end);
 

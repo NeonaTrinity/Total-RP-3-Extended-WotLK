@@ -25,7 +25,18 @@ local ToolFrame, buttonWidget;
 local currentList = {};
 local currentStructure;
 
+local function hideTutorialVisuals()
+	if ToolFrame then
+		ToolFrame.tutorialhide:Hide();
+	end
+	if buttonWidget and buttonWidget.boxHighlight then
+		buttonWidget.boxHighlight:Hide();
+	end
+	TRP3_API.navigation.hideTutorialTooltip(buttonWidget);
+end
+
 local function onStep(step)
+	if not currentStructure or not currentStructure[step] then return; end
 	local stepInfo = currentStructure[step];
 	local cancel = false;
 
@@ -36,6 +47,7 @@ local function onStep(step)
 
 	if cancel then
 		ToolFrame.tutoframe:Hide();
+		hideTutorialVisuals();
 		Utils.message.displayMessage(cancelMessage, 4);
 		return;
 	end
@@ -45,18 +57,20 @@ local function onStep(step)
 		frame = _G[stepInfo.box];
 	end
 
-	if frame and frame:IsVisible() then
-		buttonWidget.boxHighlight:SetAllPoints(stepInfo.box);
+	buttonWidget.boxHighlight:ClearAllPoints();
+	if frame and frame.IsVisible and frame:IsVisible() then
+		buttonWidget.boxHighlight:SetAllPoints(frame);
 	else
 		buttonWidget.boxHighlight:SetAllPoints(ToolFrame);
 	end
+	buttonWidget.boxHighlight:Show();
 
 	buttonWidget:ClearAllPoints();
-	buttonWidget:SetPoint( stepInfo.anchor, buttonWidget.boxHighlight, stepInfo.anchor, stepInfo.x, stepInfo.y );
+	buttonWidget:SetPoint(stepInfo.anchor or "CENTER", buttonWidget.boxHighlight, stepInfo.anchor or "CENTER", stepInfo.x or 0, stepInfo.y or 0);
 
 	TRP3_API.navigation.hideTutorialTooltip(buttonWidget);
 	buttonWidget.arrow = stepInfo.arrow or "RIGHT";
-	buttonWidget.text = loc(stepInfo.text);
+	buttonWidget.text = loc(stepInfo.text or "");
 	buttonWidget.textWidth = stepInfo.textWidth or 220;
 	TRP3_API.navigation.showTutorialTooltip(buttonWidget);
 
@@ -75,7 +89,9 @@ end
 local function startTutorial(step)
 	if ToolFrame.tutoframe:IsVisible() then
 		ToolFrame.tutoframe:Hide();
+		hideTutorialVisuals();
 	else
+		if not currentStructure or #currentStructure == 0 then return; end
 		ToolFrame.tutoframe:Show();
 		ToolFrame.tutorialhide:Show();
 		TRP3_API.ui.listbox.setupListBox(ToolFrame.tutoframe.step, currentList, onStep, nil, 200, true);
@@ -86,25 +102,19 @@ local function startTutorial(step)
 end
 
 function TRP3_ExtendedTutorial.loadStructure(structure)
-	-- Guided tutorial overlays depend on post-Wrath TRP3 UI infrastructure.
-	-- Keep them disabled on 3.3.5; this does not affect any editor functionality.
-	ToolFrame.tutorial:Hide();
 	currentStructure = structure;
-	return;
-
-	--[[ Unreachable upstream tutorial population retained for easier future porting.
 	if not structure then
+		ToolFrame.tutorial:Hide();
 		return;
 	end
 
 	wipe(currentList);
 	for index, info in pairs(currentStructure) do
-		tinsert(currentList, {index .. " - " .. loc(info.title), index});
+		tinsert(currentList, {index .. " - " .. loc(info.title or ""), index});
 	end
 
 	ToolFrame.tutorial:Show();
 	ToolFrame.tutorial:SetFrameLevel(ToolFrame:GetFrameLevel() + 100);
-	]]
 end
 
 function TRP3_ExtendedTutorial.init(toolFrame)
@@ -118,26 +128,63 @@ function TRP3_ExtendedTutorial.init(toolFrame)
 
 	ToolFrame.tutoframe.next:SetText(">");
 	ToolFrame.tutoframe.next:SetScript("OnClick", function()
-		ToolFrame.tutoframe.step:SetSelectedValue(ToolFrame.tutoframe.currentStep + 1);
+		ToolFrame.tutoframe.step:SetSelectedValue((ToolFrame.tutoframe.currentStep or 1) + 1);
 	end);
 
 	ToolFrame.tutoframe.previous:SetText("<");
 	ToolFrame.tutoframe.previous:SetScript("OnClick", function()
-		ToolFrame.tutoframe.step:SetSelectedValue(ToolFrame.tutoframe.currentStep - 1);
+		ToolFrame.tutoframe.step:SetSelectedValue(math.max(1, (ToolFrame.tutoframe.currentStep or 1) - 1));
 	end);
 
 	ToolFrame.tutoframe.close:SetScript("OnClick", function()
 		ToolFrame.tutoframe:Hide();
+		hideTutorialVisuals();
 	end);
 
-	-- WotLK 3.3.5 has no TRP3_TutorialButton / tutorial-tooltip framework.
-	-- Tutorials are optional; disable only this guided overlay so the creation
-	-- tools themselves can initialize and remain fully usable.
-	ToolFrame.tutorial:Hide();
+	-- WotLK replacement for the later TRP3_TutorialButton template.
+	buttonWidget = CreateFrame("Frame", "TRP3X_ExtendedTutorialAnchor", UIParent);
+	buttonWidget:SetWidth(2);
+	buttonWidget:SetHeight(2);
+	buttonWidget:SetFrameStrata("TOOLTIP");
+	buttonWidget:EnableMouse(false);
+
+	local highlight = CreateFrame("Frame", "TRP3X_ExtendedTutorialHighlight", UIParent);
+	highlight:SetFrameStrata("DIALOG");
+	highlight:SetFrameLevel(ToolFrame:GetFrameLevel() + 90);
+	highlight:EnableMouse(false);
+
+	local top = highlight:CreateTexture(nil, "OVERLAY");
+	top:SetTexture(1, 0.82, 0, 0.95);
+	top:SetHeight(2);
+	top:SetPoint("TOPLEFT");
+	top:SetPoint("TOPRIGHT");
+
+	local bottom = highlight:CreateTexture(nil, "OVERLAY");
+	bottom:SetTexture(1, 0.82, 0, 0.95);
+	bottom:SetHeight(2);
+	bottom:SetPoint("BOTTOMLEFT");
+	bottom:SetPoint("BOTTOMRIGHT");
+
+	local left = highlight:CreateTexture(nil, "OVERLAY");
+	left:SetTexture(1, 0.82, 0, 0.95);
+	left:SetWidth(2);
+	left:SetPoint("TOPLEFT");
+	left:SetPoint("BOTTOMLEFT");
+
+	local right = highlight:CreateTexture(nil, "OVERLAY");
+	right:SetTexture(1, 0.82, 0, 0.95);
+	right:SetWidth(2);
+	right:SetPoint("TOPRIGHT");
+	right:SetPoint("BOTTOMRIGHT");
+
+	highlight:Hide();
+	buttonWidget.boxHighlight = highlight;
+
 	ToolFrame.tutoframe:Hide();
 	ToolFrame.tutorialhide:Hide();
-	buttonWidget = nil;
+
 	ToolFrame:SetScript("OnHide", function()
 		ToolFrame.tutoframe:Hide();
+		hideTutorialVisuals();
 	end);
 end

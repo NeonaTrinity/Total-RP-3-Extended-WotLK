@@ -1,0 +1,544 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+	
+<!--
+	Total RP 3
+	Copyright 2014-2016 Sylvain Cossement (telkostrasz@totalrp3.info)
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+		http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+-->
+
+	<Frame name="TRP3_Tools_CutsceneStepLine" virtual="true">
+		<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+			<EdgeSize><AbsValue val="24" /></EdgeSize>
+			<TileSize><AbsValue val="418" /></TileSize>
+			<BackgroundInsets><AbsInset left="5" right="5" top="5" bottom="5" /></BackgroundInsets>
+		</Backdrop>
+
+		<Size x="0" y="35" />
+
+		<Frames>
+			<Button parentKey="click" inherits="TRP3_InvisibleButton" name="$parentclick"/>
+
+			<Frame name="$parentHighlight" parentKey="Highlight" inherits="TRP3X_GlowBorderTemplate" hidden="true">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="5" y="-2"/>
+					<Anchor point="BOTTOMRIGHT" x="-3" y="5"/>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						self:SetAlpha(0.55);
+					</OnLoad>
+				</Scripts>
+			</Frame>
+
+			<Button parentKey="movedown" name="$parentmovedown">
+				<Size x="32" y="32"/>
+				<Anchors>
+					<Anchor point="RIGHT" x="0" y="0"/>
+				</Anchors>
+				<NormalTexture file="Interface\Buttons\UI-Panel-ExpandButton-Up"/>
+				<PushedTexture file="Interface\Buttons\UI-Panel-ExpandButton-Down"/>
+				<HighlightTexture file="Interface\Buttons\UI-Panel-MinimizeButton-Highlight" alphaMode="ADD"/>
+			</Button>
+			<Button parentKey="moveup" name="$parentmoveup">
+				<Size x="32" y="32"/>
+				<Anchors>
+					<Anchor point="RIGHT" x="0" y="0" relativePoint="LEFT" relativeTo="$parentmovedown"/>
+				</Anchors>
+				<NormalTexture file="Interface\Buttons\UI-Panel-CollapseButton-Up"/>
+				<PushedTexture file="Interface\Buttons\UI-Panel-CollapseButton-Down"/>
+				<HighlightTexture file="Interface\Buttons\UI-Panel-MinimizeButton-Highlight" alphaMode="ADD"/>
+			</Button>
+		</Frames>
+
+		<Layers>
+			<Layer level="BORDER">
+				<FontString parentKey="text" inherits="GameFontNormalSmall" justifyH="LEFT" name="$parenttext">
+					<Size x="0" y="10" />
+					<Anchors>
+						<Anchor point="LEFT" x="15" y="0" />
+						<Anchor point="RIGHT" x="-70" y="0" />
+					</Anchors>
+					<Color r="0.95" g="0.75" b="0.10" />
+				</FontString>
+			</Layer>
+		</Layers>
+
+	</Frame>
+
+	<Frame name="TRP3_CutsceneEditorChoiceLine" virtual="true">
+		<Size x="0" y="20"/>
+		<Anchors>
+			<Anchor point="LEFT" x="15" y="0"/>
+			<Anchor point="RIGHT" x="-15" y="0"/>
+		</Anchors>
+		<Frames>
+			<Button parentKey="condition" inherits="TRP3_CommonButton" name="$parentcondition">
+				<Size x="125" y="18"/>
+				<Anchors>
+					<Anchor point="LEFT" x="0" y="0" />
+				</Anchors>
+			</Button>
+			<EditBox parentKey="text" inherits="TRP3X_TitledHelpEditBox" name="$parenttext">
+				<Size x="0" y="18"/>
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentcondition" x="10" y="0"/>
+					<Anchor point="RIGHT" relativePoint="CENTER" x="120" y="0"/>
+				</Anchors>
+			</EditBox>
+			<EditBox parentKey="step" inherits="TRP3X_TitledHelpEditBox" name="$parentstep">
+				<Size x="0" y="18"/>
+				<Anchors>
+					<Anchor point="RIGHT" x="0" y="0"/>
+					<Anchor point="LEFT" relativePoint="CENTER" x="130" y="0"/>
+				</Anchors>
+			</EditBox>
+		</Frames>
+	</Frame>
+
+	<!-- *_*_*_*_*_*_*_*_*_*  -->
+	<!--    General frame     -->
+	<!-- *_*_*_*_*_*_*_*_*_*  -->
+
+	<Frame name="TRP3_Tools_CutsceneEditorNormalTemplate" virtual="true">
+		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+			<EdgeSize><AbsValue val="24"/></EdgeSize>
+			<TileSize><AbsValue val="380"/></TileSize>
+			<BackgroundInsets><AbsInset left="5" right="5" top="5" bottom="5"/></BackgroundInsets>
+		</Backdrop>
+
+		<Frames>
+
+			<Frame parentKey="overlay" hidden="true" setAllPoints="true" enableMouse="true" name="$parentoverlay">
+
+				<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<EdgeSize>
+						<AbsValue val="24" />
+					</EdgeSize>
+					<TileSize>
+						<AbsValue val="418" />
+					</TileSize>
+					<BackgroundInsets>
+						<AbsInset left="5" right="5" top="5" bottom="5" />
+					</BackgroundInsets>
+				</Backdrop>
+
+			</Frame>
+
+			<Frame parentKey="editor" inherits="TRP3_EditorTitledFrame" name="$parentEditor">
+				<Size x="530" y="0"/>
+
+				<Anchors>
+					<Anchor point="TOPRIGHT" x="0" y="-5"/>
+					<Anchor point="BOTTOM" x="0" y="5"/>
+				</Anchors>
+
+				<Frames>
+
+					<Frame parentKey="text" inherits="TRP3X_TextArea" name="$parenttext">
+						<Size x="0" y="75"/>
+						<Layers>
+							<Layer level="OVERLAY">
+								<FontString parentKey="title" inherits="GameFontNormalSmall" justifyH="LEFT" name="$parenttitle">
+									<Anchors>
+										<Anchor point="TOPLEFT" x="10" y="12"/>
+										<Anchor point="TOPRIGHT" x="0" y="12"/>
+									</Anchors>
+									<Color r="0.95" g="0.75" b="0.1"/>
+								</FontString>
+							</Layer>
+						</Layers>
+						<Anchors>
+							<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parenttitle" x="0" y="-25"/>
+							<Anchor point="RIGHT" x="-20" y="0"/>
+							<Anchor point="LEFT" x="20" y="0"/>
+						</Anchors>
+					</Frame>
+
+					<Frame parentKey="workflow" inherits="UIDropDownMenuTemplate" enableMouse="true" name="$parentWorkflow">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" relativeTo="$parenttext" x="-10" y="-5"/>
+						</Anchors>
+					</Frame>
+					<CheckButton parentKey="loot" inherits="TRP3X_CheckBox" name="$parentLoot">
+						<Anchors>
+							<Anchor point="LEFT" x="0" y="0" relativePoint="RIGHT" relativeTo="$parentWorkflow"/>
+						</Anchors>
+					</CheckButton>
+					<CheckButton parentKey="endpoint" inherits="TRP3X_CheckBox" name="$parentEndPoint">
+						<Anchors>
+							<Anchor point="TOPLEFT" x="0" y="0" relativePoint="BOTTOMLEFT" relativeTo="$parentLoot"/>
+						</Anchors>
+					</CheckButton>
+					<Button parentKey="choices" inherits="TRP3_CommonButton" name="$parentchoices">
+						<Anchors>
+							<Anchor point="TOPLEFT" x="15" y="0" relativePoint="BOTTOMLEFT" relativeTo="$parentWorkflow"/>
+							<Anchor point="RIGHT" relativePoint="CENTER" x="-75" y="0"/>
+						</Anchors>
+					</Button>
+					<EditBox parentKey="next" inherits="TRP3X_TitledHelpEditBox" name="$parentnext">
+						<Size x="0" y="18"/>
+						<Anchors>
+							<Anchor point="TOPLEFT" x="15" y="-2" relativePoint="TOPRIGHT" relativeTo="$parentchoices"/>
+							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parentEndPoint" x="-20" y="0"/>
+						</Anchors>
+					</EditBox>
+					<Frame parentKey="choicesEditor" inherits="TRP3_HoveredFrame" enableMouse="true" hidden="true" name="$parentchoicesEditor">
+						<Size x="500" y="225"/>
+						<Layers>
+							<Layer level="OVERLAY">
+								<FontString parentKey="title" inherits="GameFontNormal" justifyH="CENTER" name="$parenttitle">
+									<Anchors>
+										<Anchor point="TOP" x="0" y="-15"/>
+									</Anchors>
+									<Color r="0.95" g="0.75" b="0.1"/>
+								</FontString>
+							</Layer>
+						</Layers>
+						<Frames>
+							<Frame parentKey="line1" inherits="TRP3_CutsceneEditorChoiceLine" name="$parentline1">
+								<Anchors>
+									<Anchor point="TOP" x="0" y="-45"/>
+								</Anchors>
+							</Frame>
+							<Frame parentKey="line2" inherits="TRP3_CutsceneEditorChoiceLine" name="$parentline2">
+								<Anchors>
+									<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentline1" x="0" y="-15"/>
+								</Anchors>
+							</Frame>
+							<Frame parentKey="line3" inherits="TRP3_CutsceneEditorChoiceLine" name="$parentline3">
+								<Anchors>
+									<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentline2" x="0" y="-15"/>
+								</Anchors>
+							</Frame>
+							<Frame parentKey="line4" inherits="TRP3_CutsceneEditorChoiceLine" name="$parentline4">
+								<Anchors>
+									<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentline3" x="0" y="-15"/>
+								</Anchors>
+							</Frame>
+							<Frame parentKey="line5" inherits="TRP3_CutsceneEditorChoiceLine" name="$parentline5">
+								<Anchors>
+									<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentline4" x="0" y="-15"/>
+								</Anchors>
+							</Frame>
+						</Frames>
+					</Frame>
+
+					<CheckButton parentKey="direction" inherits="TRP3X_CheckBox" name="$parentDirection">
+						<Layers>
+							<Layer level="OVERLAY">
+								<FontString parentKey="section" inherits="GameFontNormalSmall" justifyH="LEFT" text="[SECTION]" name="$parentsection">
+									<Anchors>
+										<Anchor point="TOPLEFT" x="-10" y="12"/>
+									</Anchors>
+									<Color r="0.95" g="0.75" b="0.1"/>
+								</FontString>
+							</Layer>
+						</Layers>
+						<Anchors>
+							<Anchor point="TOPLEFT" x="35" y="-70" relativePoint="BOTTOMLEFT" relativeTo="$parentWorkflow"/>
+						</Anchors>
+					</CheckButton>
+					<Frame parentKey="directionValue" inherits="UIDropDownMenuTemplate" enableMouse="true" name="$parentDirectionValue">
+						<Anchors>
+							<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentDirection" x="200" y="0"/>
+						</Anchors>
+					</Frame>
+
+					<CheckButton parentKey="name" inherits="TRP3X_CheckBox" name="$parentName">
+						<Anchors>
+							<Anchor point="TOPLEFT" x="0" y="-4" relativePoint="BOTTOMLEFT" relativeTo="$parentDirection"/>
+						</Anchors>
+					</CheckButton>
+					<EditBox parentKey="nameValue" inherits="TRP3X_TitledHelpEditBox" name="$parentnameValue">
+						<Size x="0" y="18"/>
+						<Anchors>
+							<Anchor point="LEFT" x="220" y="0" relativePoint="RIGHT" relativeTo="$parentName"/>
+							<Anchor point="RIGHT" x="-35" y="0"/>
+						</Anchors>
+					</EditBox>
+
+					<CheckButton parentKey="background" inherits="TRP3X_CheckBox" name="$parentBackground">
+						<Anchors>
+							<Anchor point="TOPLEFT" x="0" y="-20" relativePoint="BOTTOMLEFT" relativeTo="$parentName"/>
+						</Anchors>
+						<Layers>
+							<Layer level="OVERLAY">
+								<FontString parentKey="section" inherits="GameFontNormalSmall" justifyH="LEFT" text="[SECTION]" name="$parentsection">
+									<Anchors>
+										<Anchor point="TOPLEFT" x="-10" y="13"/>
+									</Anchors>
+									<Color r="0.95" g="0.75" b="0.1"/>
+								</FontString>
+							</Layer>
+						</Layers>
+					</CheckButton>
+					<EditBox parentKey="backgroundValue" inherits="TRP3X_TitledHelpEditBox" name="$parentbackgroundValue">
+						<Size x="0" y="18"/>
+						<Anchors>
+							<Anchor point="LEFT" x="220" y="0" relativePoint="RIGHT" relativeTo="$parentBackground"/>
+							<Anchor point="RIGHT" x="-35" y="0"/>
+						</Anchors>
+					</EditBox>
+
+					<CheckButton parentKey="image" inherits="TRP3X_CheckBox" name="$parentimage">
+						<Anchors>
+							<Anchor point="TOPLEFT" x="0" y="-4" relativePoint="BOTTOMLEFT" relativeTo="$parentBackground"/>
+						</Anchors>
+					</CheckButton>
+					<EditBox parentKey="imageValue" inherits="TRP3X_TitledHelpEditBox" name="$parentimageValue">
+						<Size x="0" y="18"/>
+						<Anchors>
+							<Anchor point="LEFT" x="220" y="0" relativePoint="RIGHT" relativeTo="$parentimage"/>
+							<Anchor point="RIGHT" x="-125" y="0"/>
+						</Anchors>
+					</EditBox>
+					<Button parentKey="imageMore" inherits="TRP3_CommonButton" text="SAVE" name="$parentimageMore">
+						<Anchors>
+							<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentimageValue" x="10" y="1"/>
+							<Anchor point="RIGHT" x="-35" y="0"/>
+						</Anchors>
+					</Button>
+					<Frame parentKey="imageEditor" inherits="TRP3_HoveredFrame" enableMouse="true" hidden="true" name="$parentimageEditor">
+						<Size x="125" y="185"/>
+						<Frames>
+							<EditBox parentKey="width" inherits="TRP3X_TitledHelpEditBox" name="$parentwidth">
+								<Size x="100" y="18"/>
+								<Anchors>
+									<Anchor point="TOPLEFT" x="10" y="-10"/>
+								</Anchors>
+							</EditBox>
+							<EditBox parentKey="height" inherits="TRP3X_TitledHelpEditBox" name="$parentheight">
+								<Size x="100" y="18"/>
+								<Anchors>
+									<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentwidth" x="0" y="-10"/>
+								</Anchors>
+							</EditBox>
+							<EditBox parentKey="left" inherits="TRP3X_TitledHelpEditBox" name="$parentleft">
+								<Size x="100" y="18"/>
+								<Anchors>
+									<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentheight" x="0" y="-10"/>
+								</Anchors>
+							</EditBox>
+							<EditBox parentKey="right" inherits="TRP3X_TitledHelpEditBox" name="$parentright">
+								<Size x="100" y="18"/>
+								<Anchors>
+									<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentleft" x="0" y="-10"/>
+								</Anchors>
+							</EditBox>
+							<EditBox parentKey="top" inherits="TRP3X_TitledHelpEditBox" name="$parenttop">
+								<Size x="100" y="18"/>
+								<Anchors>
+									<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentright" x="0" y="-10"/>
+								</Anchors>
+							</EditBox>
+							<EditBox parentKey="bottom" inherits="TRP3X_TitledHelpEditBox" name="$parentbottom">
+								<Size x="100" y="18"/>
+								<Anchors>
+									<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parenttop" x="0" y="-10"/>
+								</Anchors>
+							</EditBox>
+						</Frames>
+					</Frame>
+
+					<CheckButton parentKey="leftUnit" inherits="TRP3X_CheckBox" name="$parentLeftUnit">
+						<Anchors>
+							<Anchor point="TOPLEFT" x="0" y="-20" relativePoint="BOTTOMLEFT" relativeTo="$parentimage"/>
+						</Anchors>
+						<Layers>
+							<Layer level="OVERLAY">
+								<FontString parentKey="section" inherits="GameFontNormalSmall" justifyH="LEFT" text="[SECTION]" name="$parentsection">
+									<Anchors>
+										<Anchor point="TOPLEFT" x="-10" y="13"/>
+									</Anchors>
+									<Color r="0.95" g="0.75" b="0.1"/>
+								</FontString>
+							</Layer>
+						</Layers>
+					</CheckButton>
+					<EditBox parentKey="leftUnitValue" inherits="TRP3X_TitledHelpEditBox" name="$parentleftUnitValue">
+						<Size x="0" y="18"/>
+						<Anchors>
+							<Anchor point="LEFT" x="220" y="0" relativePoint="RIGHT" relativeTo="$parentLeftUnit"/>
+							<Anchor point="RIGHT" x="-35" y="0"/>
+						</Anchors>
+					</EditBox>
+					<Button parentKey="getLeftTarget" inherits="TRP3_CommonButton" name="$parentgetLeftTarget">
+						<Size x="80" y="20" />
+						<Anchors>
+							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parentleftUnitValue" x="-3"/>
+						</Anchors>
+					</Button>
+
+					<CheckButton parentKey="rightUnit" inherits="TRP3X_CheckBox" name="$parentRightUnit">
+						<Anchors>
+							<Anchor point="TOPLEFT" x="0" y="-4" relativePoint="BOTTOMLEFT" relativeTo="$parentLeftUnit"/>
+						</Anchors>
+					</CheckButton>
+					<EditBox parentKey="rightUnitValue" inherits="TRP3X_TitledHelpEditBox" name="$parentrightUnitValue">
+						<Size x="0" y="18"/>
+						<Anchors>
+							<Anchor point="LEFT" x="220" y="0" relativePoint="RIGHT" relativeTo="$parentRightUnit"/>
+							<Anchor point="RIGHT" x="-35" y="0"/>
+						</Anchors>
+					</EditBox>
+					<Button parentKey="getRightTarget" inherits="TRP3_CommonButton" name="$parentgetRightTarget">
+						<Size x="80" y="20" />
+						<Anchors>
+							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parentrightUnitValue" x="-3"/>
+						</Anchors>
+					</Button>
+
+				</Frames>
+
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString parentKey="attributes" inherits="GameFontNormal" justifyH="LEFT" name="$parentattributes">
+							<Anchors>
+								<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentWorkflow" x="0" y="-30"/>
+								<Anchor point="LEFT" x="28" y="0"/>
+								<Anchor point="RIGHT" x="0" y="0"/>
+							</Anchors>
+							<Color r="0.95" g="0.75" b="0.1"/>
+						</FontString>
+					</Layer>
+				</Layers>
+
+			</Frame>
+
+			<Frame parentKey="main" inherits="TRP3_EditorTitledFrame" name="$parentmain">
+				<Size x="0" y="150"/>
+
+				<Anchors>
+					<Anchor point="TOPLEFT" x="0" y="-5"/>
+					<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parentEditor" x="0" y="0"/>
+				</Anchors>
+
+				<Frames>
+
+					<EditBox parentKey="distance" inherits="TRP3X_TitledHelpEditBox" name="$parentdistance">
+						<Size x="0" y="18"/>
+						<Anchors>
+							<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parenttitle" x="0" y="-10"/>
+							<Anchor point="LEFT" x="25" y="0" />
+							<Anchor point="RIGHT" x="-15" y="0" relativePoint="CENTER"/>
+						</Anchors>
+					</EditBox>
+
+					<Button parentKey="preview" inherits="TRP3_CommonButton" name="$parentpreview">
+						<Size x="150" y="20" />
+						<Anchors>
+							<Anchor point="BOTTOM" x="0" y="30"/>
+						</Anchors>
+					</Button>
+
+				</Frames>
+
+			</Frame>
+
+			<Frame parentKey="step" inherits="TRP3_EditorTitledFrame" name="$parentstep">
+				<Size x="530" y="0"/>
+
+				<Anchors>
+					<Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" relativeTo="$parentmain" x="0" y="0"/>
+					<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMLEFT" relativeTo="$parentEditor" x="0" y="0"/>
+				</Anchors>
+
+				<Layers>
+					<Layer level="OVERLAY">
+						<Texture parentKey="arrow" file="Interface\Buttons\Arrow-Down-Up" name="$parentarrow">
+							<Size x="64" y="128"/>
+							<Anchors>
+								<Anchor point="CENTER" relativePoint="RIGHT" x="0" y="0"/>
+							</Anchors>
+							<TexCoords left="1" right="0" top="0" bottom="1"/>
+						</Texture>
+					</Layer>
+				</Layers>
+
+				<Frames>
+
+					<Frame parentKey="list" name="$parentList" inherits="TRP3_InnerFrame">
+
+						<Anchors>
+							<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parenttitle" x="0" y="-35"/>
+							<Anchor point="RIGHT" x="-20" y="0"/>
+							<Anchor point="LEFT" x="20" y="0"/>
+							<Anchor point="BOTTOM" x="0" y="20"/>
+						</Anchors>
+
+						<Frames>
+
+							<Button parentKey="add" inherits="TRP3_CommonButton" name="$parentadd">
+								<Size x="150" y="20" />
+								<Anchors>
+									<Anchor point="BOTTOM" relativePoint="TOP" x="0" y="10"/>
+								</Anchors>
+							</Button>
+
+							<Frame parentKey="line1" inherits="TRP3_Tools_CutsceneStepLine" name="$parentline1">
+								<Anchors>
+									<Anchor point="TOP" x="0" y="-15"/>
+									<Anchor point="LEFT" x="10" y="0" />
+									<Anchor point="RIGHT" x="-25" y="0" />
+								</Anchors>
+							</Frame>
+
+							<Frame parentKey="line2" inherits="TRP3_Tools_CutsceneStepLine" name="$parentline2">
+								<Anchors>
+									<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentline1" x="0" y="-10"/>
+									<Anchor point="LEFT" x="10" y="0" />
+									<Anchor point="RIGHT" x="-25" y="0" />
+								</Anchors>
+							</Frame>
+
+							<Frame parentKey="line3" inherits="TRP3_Tools_CutsceneStepLine" name="$parentline3">
+								<Anchors>
+									<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentline2" x="0" y="-10"/>
+									<Anchor point="LEFT" x="10" y="0" />
+									<Anchor point="RIGHT" x="-25" y="0" />
+								</Anchors>
+							</Frame>
+
+							<Frame parentKey="line4" inherits="TRP3_Tools_CutsceneStepLine" name="$parentline4">
+								<Anchors>
+									<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentline3" x="0" y="-10"/>
+									<Anchor point="LEFT" x="10" y="0" />
+									<Anchor point="RIGHT" x="-25" y="0" />
+								</Anchors>
+							</Frame>
+
+							<Frame parentKey="line5" inherits="TRP3_Tools_CutsceneStepLine" name="$parentline5">
+								<Anchors>
+									<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentline4" x="0" y="-10"/>
+									<Anchor point="LEFT" x="10" y="0" />
+									<Anchor point="RIGHT" x="-25" y="0" />
+								</Anchors>
+							</Frame>
+
+							<Slider parentKey="slider" name="$parentSlider" inherits="TRP3_Scrollbar"/>
+						</Frames>
+
+					</Frame>
+
+				</Frames>
+			</Frame>
+
+		</Frames>
+
+	</Frame>
+
+
+</Ui>

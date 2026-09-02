@@ -1,0 +1,6 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+    <!-- WotLK alpha: the historical TRP-Anim-DB git submodule is absent from
+         GitHub's 1.0.7 archive; compat/wotlk_compat.lua provides fallbacks. -->
+</Ui>

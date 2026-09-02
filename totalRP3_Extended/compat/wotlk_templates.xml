@@ -1,0 +1,233 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+
+    <!-- Minimal compatibility templates for UI templates introduced after 3.3.5. -->
+
+    <Frame name="TRP3_AltHoveredFrame" inherits="TRP3_HoveredFrame" virtual="true">
+        <Layers>
+            <Layer level="BACKGROUND">
+                <Texture name="$parentBackground" parentKey="Background" file="Interface\DialogFrame\UI-DialogBox-Background" setAllPoints="true"/>
+            </Layer>
+        </Layers>
+        <Scripts>
+            <OnLoad>
+                if not self.Background and self:GetName() then
+                    self.Background = _G[self:GetName() .. "Background"];
+                end
+            </OnLoad>
+        </Scripts>
+    </Frame>
+
+    <!-- API-34 Extended expects parentKey-style aliases that API-11's old
+         TRP3_TitledHelpEditBox template does not expose. Keep base TRP3
+         untouched and add the aliases on an Extended-only derived template. -->
+    <EditBox name="TRP3X_TitledHelpEditBox" inherits="TRP3_TitledHelpEditBox" virtual="true">
+        <Scripts>
+            <OnLoad>
+                self.title = _G[self:GetName() .. "Text"];
+                self.help = _G[self:GetName() .. "Help"];
+            </OnLoad>
+        </Scripts>
+    </EditBox>
+
+
+    <!-- API-11 TRP3_TextArea creates $parentScroll/$parentScrollText as
+         named globals, but API-34 Extended expects .scroll/.scroll.text. -->
+    <Frame name="TRP3X_TextArea" inherits="TRP3_TextArea" virtual="true" enableMouse="true">
+        <Scripts>
+            <OnLoad>
+                local n = self:GetName();
+                if n then
+                    self.scroll = _G[n .. "Scroll"];
+                    if self.scroll then
+                        self.scroll.text = _G[n .. "ScrollText"];
+                    end
+                    self.dummy = _G[n .. "FocusDummy"]
+                end
+            </OnLoad>
+        </Scripts>
+    </Frame>
+
+    <!-- API-11 TRP3_CheckBox exposes its label only as $parentText. -->
+    <CheckButton name="TRP3X_CheckBox" inherits="TRP3_CheckBox" virtual="true" checked="false">
+        <Scripts>
+            <OnLoad>
+                local n = self:GetName();
+                if n then
+                    self.Text = _G[n .. "Text"];
+                    if self.Text then self.Text:SetFontObject(GameFontNormalSmall); end
+                end
+            </OnLoad>
+        </Scripts>
+    </CheckButton>
+
+
+
+    <!-- API-11 TRP3_TitledEditBox exposes only $parentText; API-34 Extended
+         expects the same object as .title. -->
+    <EditBox name="TRP3X_TitledEditBox" inherits="TRP3_TitledEditBox" virtual="true">
+        <Scripts>
+            <OnLoad>
+                local n = self:GetName();
+                if n then self.title = _G[n .. "Text"]; end
+            </OnLoad>
+        </Scripts>
+    </EditBox>
+
+    <!-- WotLK's inherited GlowBorderTemplate points at post-Wrath Common
+         textures that are missing in this client. Extended only needs a visible
+         selection outline, so use a normal tooltip border instead. -->
+    <Frame name="TRP3X_GlowBorderTemplate" virtual="true">
+        <Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border">
+            <EdgeSize><AbsValue val="12"/></EdgeSize>
+            <BackgroundInsets><AbsInset left="0" right="0" top="0" bottom="0"/></BackgroundInsets>
+        </Backdrop>
+    </Frame>
+
+    <Frame name="TRP3_InnerFrame" virtual="true">
+        <Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+            <BackgroundInsets left="3" right="3" top="3" bottom="3"/>
+            <TileSize val="16"/><EdgeSize val="16"/>
+        </Backdrop>
+    </Frame>
+
+    <Frame name="TRP3_StandardParchmentFrame" virtual="true">
+        <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+            <BackgroundInsets left="8" right="8" top="8" bottom="8"/>
+            <TileSize val="32"/><EdgeSize val="32"/>
+        </Backdrop>
+    </Frame>
+    <Frame name="TRP3_SmallerStandardParchmentFrame" inherits="TRP3_StandardParchmentFrame" virtual="true"/>
+
+    <Button name="TRP3_ResizeButton" virtual="true">
+        <Size x="18" y="18"/>
+        <NormalTexture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Up"/>
+        <HighlightTexture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Highlight" alphaMode="ADD"/>
+        <PushedTexture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Down"/>
+        <Scripts>
+            <OnMouseDown>
+                local target = self.resizableFrame or self:GetParent();
+                if target then target:SetResizable(true); target:StartSizing("BOTTOMRIGHT"); end
+            </OnMouseDown>
+            <OnMouseUp>
+                local target = self.resizableFrame or self:GetParent();
+                if target then
+                    target:StopMovingOrSizing();
+                    local w, h = target:GetWidth(), target:GetHeight();
+                    if self.minWidth and w &lt; self.minWidth then w = self.minWidth; end
+                    if self.minHeight and h &lt; self.minHeight then h = self.minHeight; end
+                    target:SetSize(w, h);
+                    if self.onResizeStop then self.onResizeStop(w, h); end
+                end
+            </OnMouseUp>
+        </Scripts>
+    </Button>
+
+    <Slider name="TRP3_Scrollbar" orientation="VERTICAL" virtual="true" enableMouse="true">
+        <Size x="16" y="100"/>
+        <ThumbTexture file="Interface\Buttons\UI-ScrollBar-Knob">
+            <Size x="18" y="24"/>
+            <TexCoords left="0.25" right="0.75" top="0.125" bottom="0.875"/>
+        </ThumbTexture>
+    </Slider>
+
+    <Slider name="TRP3X_MinimalScrollBarTemplate" orientation="VERTICAL" virtual="true" enableMouse="true">
+        <Size x="16" y="100"/>
+        <Layers>
+            <Layer level="BACKGROUND">
+                <Texture parentKey="trackBG" name="$parentTrackBG" file="Interface\Tooltips\UI-Tooltip-Background">
+                    <Anchors><Anchor point="TOPLEFT"/><Anchor point="BOTTOMRIGHT"/></Anchors>
+                    <Color r="0.2" g="0.13" b="0.08" a="0.25"/>
+                </Texture>
+            </Layer>
+        </Layers>
+        <ThumbTexture file="Interface\Buttons\UI-ScrollBar-Knob">
+            <Size x="18" y="24"/>
+            <TexCoords left="0.25" right="0.75" top="0.125" bottom="0.875"/>
+        </ThumbTexture>
+    </Slider>
+
+    <ScrollFrame name="TRP3X_UIPanelScrollFrameCodeTemplate" virtual="true" enableMouseWheel="true">
+        <Scripts>
+            <OnMouseWheel>
+                if self.ScrollBar then
+                    local step = self.ScrollBar:GetValueStep() or 1;
+                    self.ScrollBar:SetValue(self.ScrollBar:GetValue() - delta * step * 3);
+                end
+            </OnMouseWheel>
+        </Scripts>
+    </ScrollFrame>
+
+    <Button name="TRP3X_NavButtonTemplate" inherits="UIPanelButtonTemplate" virtual="true">
+        <Size x="100" y="22"/>
+    </Button>
+    <Frame name="TRP3X_NavBarTemplate" virtual="true">
+        <Frames>
+            <Button name="$parentHome" parentKey="home" inherits="TRP3X_NavButtonTemplate">
+                <Size x="90" y="22"/>
+                <Anchors><Anchor point="LEFT" x="0" y="0"/></Anchors>
+            </Button>
+            <Button name="$parentOverflow" parentKey="overflow" inherits="UIPanelButtonTemplate" text="..." hidden="true">
+                <Size x="30" y="22"/>
+                <Anchors><Anchor point="RIGHT" x="0" y="0"/></Anchors>
+            </Button>
+        </Frames>
+    </Frame>
+
+    <PlayerModel name="TRP3X_ModelWithControlsTemplate" virtual="true">
+        <Frames>
+            <Frame name="$parentControlFrame" parentKey="controlFrame">
+                <Size x="120" y="24"/>
+                <Anchors><Anchor point="BOTTOM" x="0" y="4"/></Anchors>
+                <Frames>
+                    <Button name="$parentRotateLeftButton" inherits="UIPanelButtonTemplate" text="&lt;">
+                        <Size x="24" y="20"/><Anchors><Anchor point="LEFT"/></Anchors>
+                    </Button>
+                    <Button name="$parentZoomInButton" inherits="UIPanelButtonTemplate" text="+">
+                        <Size x="24" y="20"/><Anchors><Anchor point="LEFT" relativeTo="$parentRotateLeftButton" relativePoint="RIGHT"/></Anchors>
+                    </Button>
+                    <Button name="$parentZoomOutButton" inherits="UIPanelButtonTemplate" text="-">
+                        <Size x="24" y="20"/><Anchors><Anchor point="LEFT" relativeTo="$parentZoomInButton" relativePoint="RIGHT"/></Anchors>
+                    </Button>
+                    <Button name="$parentPanButton" inherits="UIPanelButtonTemplate" text="P">
+                        <Size x="24" y="20"/><Anchors><Anchor point="LEFT" relativeTo="$parentZoomOutButton" relativePoint="RIGHT"/></Anchors>
+                    </Button>
+                </Frames>
+            </Frame>
+        </Frames>
+    </PlayerModel>
+
+    <Frame name="TRP3_MainFrameTemplate" inherits="TRP3_StandardParchmentFrame" virtual="true" enableMouse="true" clampedToScreen="true">
+        <Frames>
+            <Button name="$parentClose" parentKey="Close" inherits="UIPanelCloseButton">
+                <Anchors><Anchor point="TOPRIGHT" x="-4" y="-4"/></Anchors>
+            </Button>
+            <Button name="$parentResize" parentKey="Resize" inherits="TRP3_ResizeButton">
+                <Anchors><Anchor point="BOTTOMRIGHT" x="-6" y="6"/></Anchors>
+            </Button>
+            <Button name="$parentMaximize" parentKey="Maximize" inherits="UIPanelButtonTemplate" text="+">
+                <Size x="22" y="20"/><Anchors><Anchor point="TOPRIGHT" x="-35" y="-8"/></Anchors>
+            </Button>
+            <Button name="$parentMinimize" parentKey="Minimize" inherits="UIPanelButtonTemplate" text="-" hidden="true">
+                <Size x="22" y="20"/><Anchors><Anchor point="TOPRIGHT" x="-35" y="-8"/></Anchors>
+            </Button>
+        </Frames>
+    </Frame>
+
+    <!-- Fallback numeric quest marker. -->
+    <Button name="TRP3X_QuestPOINumericTemplate" virtual="true">
+        <Size x="32" y="32"/>
+        <Layers>
+            <Layer level="ARTWORK">
+                <Texture parentKey="Number" name="$parentNumber" file="Interface\Minimap\POIIcons" setAllPoints="true"/>
+            </Layer>
+        </Layers>
+    </Button>
+
+    <!-- Tools tutorial calls CreateFrame with this post-Wrath template. -->
+    <Frame name="TRP3X_HelpPlateBoxHighlight" virtual="true">
+        <Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border"><EdgeSize val="16"/></Backdrop>
+    </Frame>
+
+</Ui>

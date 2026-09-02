@@ -1,6 +1,6 @@
 TRP3 Extended WotLK 3.3.5a - Alpha 16 by J3
 
-# This addon is currently in alpha and not for public distrobution yet #
+# This addon is currently in alpha and not for public distribution yet #
 Features working:
 loads, TRP3 inventory, TRP3 Item creation.
 

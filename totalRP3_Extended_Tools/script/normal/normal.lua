@@ -38,6 +38,32 @@ local refreshElementList, toolFrame, unlockElements, onElementConfirm, openLastE
 
 local ELEMENT_TYPE = TRP3_DB.elementTypes;
 
+-- Close the entire modal element-editing state and return to the workflow.
+-- In original 1.0.7 the child editor X implicitly unwound the parent modal.
+-- On the WotLK UI the child can hide while the mouse-blocking parent remains,
+-- so centralize the unwind instead of leaving an invisible locked layer behind.
+local function closeElementEditor()
+	if TRP3_ConditionEditor then
+		if TRP3_ConditionEditor.operand then
+			if TRP3_ConditionEditor.operand.left and TRP3_ConditionEditor.operand.left.args then TRP3_ConditionEditor.operand.left.args:Hide(); end
+			if TRP3_ConditionEditor.operand.right and TRP3_ConditionEditor.operand.right.args then TRP3_ConditionEditor.operand.right.args:Hide(); end
+			TRP3_ConditionEditor.operand:Hide();
+		end
+		if TRP3_ConditionEditor:IsShown() and TRP3_ConditionEditor:GetParent() == editor.element then
+			TRP3_ConditionEditor:Hide();
+		end
+	end
+
+	if editor.element.current then
+		editor.element.current:Hide();
+	end
+	editor.element.current = nil;
+	editor.element.scriptStep = nil;
+	editor.element:Hide();
+	if editor.overlay then editor.overlay:Hide(); end
+	unlockElements();
+end
+
 local function setCurrentElementFrame(frame, title, noConfirm)
 	assert(frame, "Editor is null.")
 	unlockElements();
@@ -55,10 +81,7 @@ local function setCurrentElementFrame(frame, title, noConfirm)
 	end
 
 	if frame.close then
-		frame.close:SetScript("OnClick", function()
-			editor.element:Hide();
-			unlockElements();
-		end);
+		frame.close:SetScript("OnClick", closeElementEditor);
 	end
 
 	if frame.confirm then
@@ -435,6 +458,8 @@ end
 function refreshElementList()
 	local data = toolFrame.specificDraft.SC[editor.workflowID].ST;
 
+	if editor.element.current then editor.element.current:Hide(); end
+	editor.element.current = nil;
 	editor.element:Hide();
 	for _, element in pairs(editor.list.listElement) do
 		element:Hide();
@@ -780,21 +805,18 @@ editor.init = function(ToolFrame, effectMenu)
 	editor.element.selector.delay:SetScript("OnClick", addDelayElement);
 	editor.element.selector.effect:SetScript("OnClick", displayEffectDropdown);
 
-	if editor.element.SetBackdrop then editor.element:SetBackdrop(nil); end
+	-- Keep a subtle modal backdrop so it is obvious the workflow is temporarily
+	-- in element-editing mode, but use the child editor's X as the only close
+	-- control. Every child X now unwinds the whole modal back to the workflow.
+	if editor.element.SetBackdropColor then
+		editor.element:SetBackdropColor(0.03, 0.03, 0.03, 0.72);
+	end
+	if editor.element.SetBackdropBorderColor then
+		editor.element:SetBackdropBorderColor(0.35, 0.35, 0.35, 0.90);
+	end
 	editor.element.close:Hide();
-	editor.element.close:SetScript("OnClick", function()
-		if editor.element.current then editor.element.current:Hide(); end
-		editor.element:Hide();
-		unlockElements();
-	end);
-	editor:SetScript("OnHide", function()
-		if editor.element.current then editor.element.current:Hide(); end
-		editor.element:Hide();
-		if TRP3_ConditionEditor and TRP3_ConditionEditor.operand then TRP3_ConditionEditor.operand:Hide(); end
-		if TRP3_ConditionEditor and TRP3_ConditionEditor:IsShown() then TRP3_ConditionEditor:Hide(); end
-		if editor.overlay then editor.overlay:Hide(); end
-		unlockElements();
-	end);
+	editor.element.close:SetScript("OnClick", closeElementEditor);
+	editor:SetScript("OnHide", closeElementEditor);
 
 	-- Tutorial
 	local TUTORIAL = {

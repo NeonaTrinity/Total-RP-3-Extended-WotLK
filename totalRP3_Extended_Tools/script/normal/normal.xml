@@ -175,16 +175,10 @@
 
 			<Frame parentKey="overlay" hidden="true" setAllPoints="true" enableMouse="true" name="$parentoverlay">
 
-				<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
-					<EdgeSize>
-						<AbsValue val="24" />
-					</EdgeSize>
-					<TileSize>
-						<AbsValue val="418" />
-					</TileSize>
-					<BackgroundInsets>
-						<AbsInset left="5" right="5" top="5" bottom="5" />
-					</BackgroundInsets>
+				<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<EdgeSize><AbsValue val="16" /></EdgeSize>
+					<TileSize><AbsValue val="32" /></TileSize>
+					<BackgroundInsets><AbsInset left="8" right="8" top="8" bottom="8" /></BackgroundInsets>
 				</Backdrop>
 
 			</Frame>

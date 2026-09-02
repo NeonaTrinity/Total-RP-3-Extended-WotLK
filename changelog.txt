@@ -1,3 +1,15 @@
+TRP3 Extended WotLK Alpha 20
+================================
+
+Workflow modal close-state fix:
+- Add Element selector X now closes the entire element-editing modal and returns to the workflow.
+- Effect/Condition/Delay editor X now performs the same full unwind.
+- Nested Condition operand frames are cleaned up during the unwind.
+- The workflow is explicitly unlocked and highlights cleared.
+- A subtle dark modal backdrop is restored so element-editing mode is visually obvious, but its own redundant X remains hidden; the visible child X is the single exit control.
+- Refresh/tab/hide paths clear stale element-editor state instead of leaving an invisible mouse-blocking frame.
+
+
 TRP3 Extended WotLK Alpha 19
 ================================
 

@@ -489,6 +489,10 @@ function TRP3_API.extended.tools.initCutsceneEditorNormal(ToolFrame)
 		line.movedown:SetScript("OnClick", onMoveDownClick);
 	end
 	step.list.decorate = decorateStepLine;
+	-- Original 1.0.7 used a later-client horizontal CharacterCreate arrow
+	-- between the list and editor. The WotLK texture substitute became a giant
+	-- yellow triangle, so keep the legacy texture key but hide the decoration.
+	if step.arrow then step.arrow:Hide(); end
 	TRP3_API.ui.list.handleMouseWheel(step.list, step.list.slider);
 	step.list.slider:SetValue(0);
 	step.list.add:SetText(loc("DI_STEP_ADD"));
@@ -512,37 +516,41 @@ function TRP3_API.extended.tools.initCutsceneEditorNormal(ToolFrame)
 	end
 
 	-- Navigation / branching rows.
-	anchorTopLeft(editor.workflow, 20, -125);
-	anchorTopLeft(editor.loot, 365, -128);
-	anchorTopLeft(editor.choices, 35, -160);
+	-- Alpha 34: add a little vertical breathing room to the two navigation
+	-- rows. Alpha 33 fit everything inside the frame, but the Wrath dropdown
+	-- and titled edit-box chrome still visually touched the Step Text/Stage
+	-- headings by a few pixels.
+	anchorTopLeft(editor.workflow, 20, -133);
+	anchorTopLeft(editor.loot, 365, -136);
+	anchorTopLeft(editor.choices, 35, -174);
 	editor.choices:SetWidth(150);
-	anchorTopLeft(editor.next, 205, -158);
+	anchorTopLeft(editor.next, 205, -172);
 	editor.next:SetWidth(120);
-	anchorTopLeft(editor.endpoint, 370, -160);
+	anchorTopLeft(editor.endpoint, 370, -174);
 
 	-- Stage modification heading and Dialog section.
 	editor.attributes:ClearAllPoints();
-	editor.attributes:SetPoint("TOPLEFT", editor, "TOPLEFT", 28, -195);
-	editor.attributes:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -20, -195);
-	anchorTopLeft(editor.direction, 35, -235);
-	anchorTopLeft(editor.directionValue, 245, -235);
-	anchorTopLeft(editor.name, 35, -265);
+	editor.attributes:SetPoint("TOPLEFT", editor, "TOPLEFT", 28, -210);
+	editor.attributes:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -20, -210);
+	anchorTopLeft(editor.direction, 35, -247);
+	anchorTopLeft(editor.directionValue, 245, -247);
+	anchorTopLeft(editor.name, 35, -277);
 	editor.nameValue:ClearAllPoints();
-	editor.nameValue:SetPoint("TOPLEFT", editor, "TOPLEFT", 260, -263);
-	editor.nameValue:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -35, -263);
+	editor.nameValue:SetPoint("TOPLEFT", editor, "TOPLEFT", 260, -275);
+	editor.nameValue:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -35, -275);
 
 	-- Decoration section.
-	anchorTopLeft(editor.background, 35, -320);
+	anchorTopLeft(editor.background, 35, -327);
 	editor.backgroundValue:ClearAllPoints();
-	editor.backgroundValue:SetPoint("TOPLEFT", editor, "TOPLEFT", 260, -318);
-	editor.backgroundValue:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -35, -318);
-	anchorTopLeft(editor.image, 35, -350);
+	editor.backgroundValue:SetPoint("TOPLEFT", editor, "TOPLEFT", 260, -325);
+	editor.backgroundValue:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -35, -325);
+	anchorTopLeft(editor.image, 35, -357);
 	editor.imageValue:ClearAllPoints();
-	editor.imageValue:SetPoint("TOPLEFT", editor, "TOPLEFT", 260, -348);
-	editor.imageValue:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -125, -348);
+	editor.imageValue:SetPoint("TOPLEFT", editor, "TOPLEFT", 260, -355);
+	editor.imageValue:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -125, -355);
 	editor.imageMore:ClearAllPoints();
-	editor.imageMore:SetPoint("TOPLEFT", editor, "TOPLEFT", 415, -349);
-	editor.imageMore:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -35, -349);
+	editor.imageMore:SetPoint("TOPLEFT", editor, "TOPLEFT", 415, -356);
+	editor.imageMore:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -35, -356);
 	editor.imageMore:SetHeight(20);
 
 	-- Models section. The target buttons and ID fields get their own columns so

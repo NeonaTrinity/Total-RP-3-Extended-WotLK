@@ -84,6 +84,9 @@ local function onStep(step)
 	end
 
 	ToolFrame.tutoframe.currentStep = step;
+	if ToolFrame.tutoframe.counter then
+		ToolFrame.tutoframe.counter:SetText(("%d / %d"):format(step, #currentStructure));
+	end
 end
 
 local function startTutorial(step)
@@ -95,7 +98,12 @@ local function startTutorial(step)
 		ToolFrame.tutoframe:Show();
 		ToolFrame.tutorialhide:Show();
 		TRP3X_WOTLK.setupListBox(ToolFrame.tutoframe.step, currentList, onStep, nil, 200, true);
+		ToolFrame.tutoframe.step:Hide();
 		ToolFrame.tutoframe.step:SetSelectedValue(step or 1);
+		-- Frame strata matters more than frame level on 3.3.5. The tutorial
+		-- blocker is DIALOG, so keep the compact controls on TOOLTIP so their
+		-- Previous/Next/X buttons remain clickable while the rest is blocked.
+		ToolFrame.tutoframe:SetFrameStrata("TOOLTIP");
 		ToolFrame.tutoframe:SetFrameLevel(ToolFrame:GetFrameLevel() + 100);
 		ToolFrame.tutorialhide:SetFrameLevel(ToolFrame:GetFrameLevel() + 50);
 	end
@@ -122,6 +130,11 @@ function TRP3_ExtendedTutorial.init(toolFrame)
 
 	TRP3_API.ui.tooltip.setTooltipAll(ToolFrame.tutorial, "TOP", 0, 0, loc("UI_TUTO_BUTTON"), loc("UI_TUTO_BUTTON_TT"));
 	ToolFrame.tutoframe.title:SetText(loc("TU_TITLE"));
+	-- The Alpha 34 controller is intentionally compact; the tutorial tooltip
+	-- carries the explanatory title/text, while this frame only navigates.
+	ToolFrame.tutoframe.title:Hide();
+	ToolFrame.tutoframe:SetFrameStrata("TOOLTIP");
+	if ToolFrame.tutoframe.counter then ToolFrame.tutoframe.counter:SetText(""); end
 	ToolFrame.tutorial:SetScript("OnClick", function()
 		startTutorial(1);
 	end);

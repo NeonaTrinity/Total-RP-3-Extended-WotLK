@@ -458,7 +458,7 @@
 
 				<Layers>
 					<Layer level="OVERLAY">
-						<Texture parentKey="arrow" file="Interface\Buttons\Arrow-Down-Up" name="$parentarrow">
+						<Texture parentKey="arrow" file="Interface\Buttons\Arrow-Down-Up" alpha="0" name="$parentarrow">
 							<Size x="64" y="128"/>
 							<Anchors>
 								<Anchor point="CENTER" relativePoint="RIGHT" x="0" y="0"/>

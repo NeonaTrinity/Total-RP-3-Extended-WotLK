@@ -328,39 +328,41 @@
 		</Anchors>
 	</Button>
 
-	<Frame parentKey="tutoframe" inherits="TRP3_EditorTitledFrame" hidden="true" name="TRP3_ExtendedTutorial" parent="TRP3_ToolFrame">
-		<Size x="300" y="100"/>
+	<Frame parentKey="tutoframe" inherits="TRP3_EditorTitledFrame" hidden="true" name="TRP3_ExtendedTutorial" parent="TRP3_ToolFrame" frameStrata="TOOLTIP">
+		<Size x="170" y="38"/>
 		<Anchors>
-			<!-- WotLK: keep tutorial navigation inside the Tools window so the
-			     step selector and previous/next buttons always remain clickable. -->
-			<Anchor point="TOP" relativePoint="TOP" x="0" y="-70"/>
+			<!-- Alpha 34 / WotLK: compact navigation lives in the unused top-center
+			     header strip, just above the database tab row, so it does not cover
+			     the controls the tutorial is trying to explain. -->
+			<Anchor point="TOP" relativePoint="TOP" x="0" y="-28"/>
 		</Anchors>
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString parentKey="counter" inherits="GameFontNormal" justifyH="CENTER" name="$parentcounter">
+					<Anchors><Anchor point="CENTER" x="-4" y="0"/></Anchors>
+					<Color r="0.95" g="0.95" b="0.95"/>
+				</FontString>
+			</Layer>
+		</Layers>
 		<Frames>
 
-			<Frame parentKey="step" inherits="UIDropDownMenuTemplate" enableMouse="true" name="$parentStep">
-				<Anchors>
-					<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parenttitle" x="0" y="0"/>
-				</Anchors>
-			</Frame>
+			<!-- Kept as the internal 1.0.7 step selector, but hidden visually.
+			     Previous/Next still drive SetSelectedValue(), preserving original
+			     tutorial callbacks without the large Database dropdown. -->
+			<Frame parentKey="step" inherits="UIDropDownMenuTemplate" enableMouse="true" hidden="true" name="$parentStep"/>
 
 			<Button parentKey="previous" inherits="TRP3_CommonButton" name="$parentprevious">
-				<Size x="50" y="20"/>
-				<Anchors>
-					<Anchor point="TOPRIGHT" relativePoint="BOTTOM" relativeTo="$parentStep" x="-10" y="0"/>
-				</Anchors>
+				<Size x="36" y="20"/>
+				<Anchors><Anchor point="LEFT" x="10" y="0"/></Anchors>
 			</Button>
 
 			<Button parentKey="next" inherits="TRP3_CommonButton" name="$parentnext">
-				<Size x="50" y="20"/>
-				<Anchors>
-					<Anchor point="TOPLEFT" relativePoint="BOTTOM" relativeTo="$parentStep" x="10" y="0"/>
-				</Anchors>
+				<Size x="36" y="20"/>
+				<Anchors><Anchor point="RIGHT" x="-34" y="0"/></Anchors>
 			</Button>
 
 			<Button parentKey="close" inherits="UIPanelCloseButton" name="$parentclose">
-				<Anchors>
-					<Anchor point="TOPRIGHT" x="0" y="0"/>
-				</Anchors>
+				<Anchors><Anchor point="TOPRIGHT" x="0" y="0"/></Anchors>
 			</Button>
 
 		</Frames>

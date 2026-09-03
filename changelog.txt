@@ -1,3 +1,16 @@
+RP3 Extended WotLK Alpha 34
+
+Alpha 34 focused UI cleanup
+===========================
+- Tutorial navigation is now a compact < 1/N > X controller in the top-center header strip.
+- The original tutorial step dropdown remains internal but is no longer shown.
+- Tutorial navigation is placed on TOOLTIP strata so it remains clickable above the DIALOG mouse blocker.
+- Cutscene Step navigation/Stage Modification spacing receives a small second-pass alignment adjustment.
+- The invalid giant yellow WotLK separator arrows are hidden in both Cutscene and Workflows editors.
+- No quest/cutscene/workflow data formats or runtime semantics were changed.
+
+===============================
+
 TRP3 Extended WotLK Alpha 33
 ===============================
 

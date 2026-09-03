@@ -623,7 +623,10 @@ local function openWorkflow(workflowID)
 
 	editor.workflowID = workflowID;
 	editor.workflow:Show();
-	editor.list.arrow:Show();
+	-- The original 1.0.7 horizontal separator texture has no faithful Wrath
+	-- equivalent in this template; the prior substitute rendered as a giant
+	-- yellow triangle. Keep it hidden rather than showing misleading artwork.
+	if editor.list.arrow then editor.list.arrow:Hide(); end
 	refreshElementList();
 	refreshLines();
 
@@ -705,7 +708,7 @@ local function refreshWorkflowList()
 
 	editor.workflowID = nil;
 	editor.workflow:Hide();
-	editor.list.arrow:Hide();
+	if editor.list.arrow then editor.list.arrow:Hide(); end
 	editor.list.add:Hide();
 	editor.list.sub:Hide();
 

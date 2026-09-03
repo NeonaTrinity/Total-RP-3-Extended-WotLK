@@ -1,3 +1,28 @@
+TRP3 Extended WotLK Alpha 27
+================================
+
+Alpha 27 fixes the stash-search broadcast failure and calibrates the existing
+WotLK proximity scale without changing saved position coordinates.
+
+Fixes:
+- Extended casting-bar IDs are now protocol-safe time/counter tokens. API-11's
+  Utils.str.id() can contain raw | (invalid SendChatMessage escape) or ~ (TRP3
+  broadcast separator), either of which can break Search for Players' Stashes.
+  Stock totalRP3 communication code is not modified.
+- The original Extended 15-yard stash/drop radius is calibrated to 45 synthetic
+  WotLK map units. Live testing showed the previous 15 synthetic units behaving
+  closer to about 5 yards. UnitPosition itself and all saved stash/drop positions
+  are unchanged, so existing data remains compatible.
+- Runtime TRP3X_WOTLK alpha marker corrected to Alpha 27.
+
+Preserved from Alpha 26:
+- Condition Test Editor explicit Left/Right operand Confirm routing.
+- RP inventory and containers.
+- item trading/exchange.
+- documents and item links.
+- stash/drop data format and saved coordinates.
+- public totalRP3 and totalRP3_Data remain untouched.
+
 Alpha 26
 
 Fix:

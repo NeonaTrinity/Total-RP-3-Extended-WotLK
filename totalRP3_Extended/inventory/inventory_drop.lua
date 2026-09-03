@@ -200,7 +200,15 @@ end
 -- Loot
 --*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-local MAX_SEARCH_DISTANCE = 15;
+-- Original Extended 1.0.7 uses UnitPosition world coordinates, where this
+-- value is a 15-yard gameplay radius. The WotLK compatibility UnitPosition
+-- intentionally preserves saved positions in a 0..10000 synthetic map space.
+-- Live 3.3.5 testing shows roughly 3 synthetic units per yard in the tested
+-- zones (15 units behaves closer to ~5 yards), so scale the threshold instead
+-- of changing UnitPosition and invalidating already-saved stash/drop positions.
+local ORIGINAL_SEARCH_DISTANCE_YARDS = 15;
+local WOTLK_POSITION_UNITS_PER_YARD = 3;
+local MAX_SEARCH_DISTANCE = ORIGINAL_SEARCH_DISTANCE_YARDS * WOTLK_POSITION_UNITS_PER_YARD;
 local searchForItems;
 
 local function isInRadius(maxDistance, posY, posX, myPosY, myPosX)

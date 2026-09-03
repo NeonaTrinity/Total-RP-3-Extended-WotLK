@@ -21,6 +21,18 @@ local loc = TRP3_API.locale.getText;
 
 local frame = TRP3_CastingBarFrame;
 
+-- WotLK channel broadcasts are sent through SendChatMessage, where a raw "|"
+-- is parsed as a chat escape and "~" is TRP3's broadcast field separator.
+-- API-11's Utils.str.id() appends arbitrary printable ASCII and can generate
+-- either character. Cast IDs are ephemeral correlation tokens, so generate
+-- them from protocol-safe characters only instead of altering stock TRP3.
+local trp3xCastIDCounter = 0;
+local function generateSafeCastID()
+	trp3xCastIDCounter = trp3xCastIDCounter + 1;
+	if trp3xCastIDCounter > 999999 then trp3xCastIDCounter = 1; end
+	return "C" .. tostring(time()) .. "-" .. tostring(trp3xCastIDCounter);
+end
+
 -- Wrath 3.3.5 CastingBarFrameTemplate exposes its regions as global names
 -- instead of the later object fields used by Extended.
 frame.Spark = frame.Spark or _G[frame:GetName() .. "Spark"];
@@ -81,7 +93,7 @@ function TRP3_API.extended.showCastingBar(duration, interruptMode, class, soundI
 		end
 	end
 
-	frame.castID = Utils.str.id();
+	frame.castID = generateSafeCastID();
 	frame.interruptMode = interruptMode;
 	frame.value = 0;
 	frame.maxValue = duration;

@@ -331,7 +331,9 @@
 	<Frame parentKey="tutoframe" inherits="TRP3_EditorTitledFrame" hidden="true" name="TRP3_ExtendedTutorial" parent="TRP3_ToolFrame">
 		<Size x="300" y="100"/>
 		<Anchors>
-			<Anchor relativePoint="TOP" point="BOTTOM" x="0" y="10"/>
+			<!-- WotLK: keep tutorial navigation inside the Tools window so the
+			     step selector and previous/next buttons always remain clickable. -->
+			<Anchor point="TOP" relativePoint="TOP" x="0" y="-70"/>
 		</Anchors>
 		<Frames>
 

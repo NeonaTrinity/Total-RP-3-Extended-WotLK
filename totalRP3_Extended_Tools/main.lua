@@ -468,23 +468,60 @@ local function onStart()
 	toolFrame.Resize.onResizeStop = function()
 		toolFrame.Minimize:Hide();
 		toolFrame.Maximize:Show();
+		toolFrame.Resize:Show();
+		toolFrame._trp3xLargeViewRestore = nil;
 		fireEvent(TRP3_API.events.NAVIGATION_EXTENDED_RESIZED, toolFrame:GetWidth(), toolFrame:GetHeight());
 	end;
 
+	local function fireToolsResize()
+		fireEvent(TRP3_API.events.NAVIGATION_EXTENDED_RESIZED, toolFrame:GetWidth(), toolFrame:GetHeight());
+	end
+
 	toolFrame.Maximize:SetScript("OnClick", function()
+		-- WotLK Large View: do not make the frame literally UIParent-sized. The
+		-- original fullscreen behavior put frame chrome against/off screen edges
+		-- while many 1.0.7 editors keep intentionally fixed content widths. Keep a
+		-- safe margin and remember the exact normal size/position for restoration.
+		local point, relativeTo, relativePoint, x, y = toolFrame:GetPoint(1);
+		toolFrame._trp3xLargeViewRestore = {
+			width = toolFrame:GetWidth(),
+			height = toolFrame:GetHeight(),
+			point = point or "CENTER",
+			relativeTo = relativeTo or UIParent,
+			relativePoint = relativePoint or point or "CENTER",
+			x = x or 0,
+			y = y or 0,
+		};
+
+		local parentWidth = UIParent:GetWidth() or toolFrame.Resize.minWidth;
+		local parentHeight = UIParent:GetHeight() or toolFrame.Resize.minHeight;
+		local largeWidth = math.min(math.max(toolFrame.Resize.minWidth, parentWidth - 80), math.max(640, parentWidth - 20));
+		local largeHeight = math.min(math.max(toolFrame.Resize.minHeight, parentHeight - 80), math.max(480, parentHeight - 20));
+
 		toolFrame.Maximize:Hide();
 		toolFrame.Minimize:Show();
-		toolFrame:SetSize(UIParent:GetWidth(), UIParent:GetHeight());
-		after(0.1, function()
-			fireEvent(TRP3_API.events.NAVIGATION_EXTENDED_RESIZED, toolFrame:GetWidth(), toolFrame:GetHeight());
-		end);
+		toolFrame.Resize:Hide();
+		toolFrame:ClearAllPoints();
+		toolFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
+		toolFrame:SetSize(largeWidth, largeHeight);
+		after(0.1, fireToolsResize);
 	end);
 
 	toolFrame.Minimize:SetScript("OnClick", function()
-		toolFrame:SetSize(toolFrame.Resize.minWidth, toolFrame.Resize.minHeight);
-		after(0.1, function()
-			toolFrame.Resize.onResizeStop();
-		end);
+		local restore = toolFrame._trp3xLargeViewRestore;
+		toolFrame._trp3xLargeViewRestore = nil;
+		toolFrame.Minimize:Hide();
+		toolFrame.Maximize:Show();
+		toolFrame.Resize:Show();
+
+		if restore then
+			toolFrame:SetSize(restore.width or toolFrame.Resize.minWidth, restore.height or toolFrame.Resize.minHeight);
+			toolFrame:ClearAllPoints();
+			toolFrame:SetPoint(restore.point, restore.relativeTo, restore.relativePoint, restore.x, restore.y);
+		else
+			toolFrame:SetSize(toolFrame.Resize.minWidth, toolFrame.Resize.minHeight);
+		end
+		after(0.1, fireToolsResize);
 	end);
 
 	-- Root panel locale selection

@@ -1,7 +1,7 @@
 # Total-RP-3 Extended (WotLK 3.3.5a) # 
 
 This addon is currently in alpha and not for public distribution yet.
-version: Alpha32.
+version: Alpha33.
 -backport by J3 
 
 Features working:

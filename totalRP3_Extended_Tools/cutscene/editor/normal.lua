@@ -453,6 +453,11 @@ function TRP3_API.extended.tools.initCutsceneEditorNormal(ToolFrame)
 	for i=1, 5 do
 		local line = step.list["line" .. i];
 		tinsert(step.list.widgetTab, line);
+		-- Original 1.0.7 makes the invisible click target cover the entire
+		-- cutscene-step banner. Reinforce it at runtime for Wrath's parentKey
+		-- conversion just like the campaign/action/quest list fixes.
+		line.click:ClearAllPoints();
+		line.click:SetAllPoints(line);
 		line.click:SetScript("OnClick", function(self, button)
 			if button == "RightButton" then
 				removeStep(self.stepID);
@@ -494,6 +499,68 @@ function TRP3_API.extended.tools.initCutsceneEditorNormal(ToolFrame)
 	--*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 	editor = toolFrame.cutscene.normal.editor;
+
+	-- Alpha 33 / WotLK layout hardening. Original 1.0.7 chains most of this
+	-- panel from later-client CheckBox/dropdown geometry. Wrath's replacement
+	-- widgets have different visible widths/heights, so small differences at
+	-- Workflow compound into overlapping section labels and controls falling
+	-- below the editor. Keep all original fields and callbacks, but place the
+	-- visible rows explicitly inside the 530px editor.
+	local function anchorTopLeft(frame, x, y)
+		frame:ClearAllPoints();
+		frame:SetPoint("TOPLEFT", editor, "TOPLEFT", x, y);
+	end
+
+	-- Navigation / branching rows.
+	anchorTopLeft(editor.workflow, 20, -125);
+	anchorTopLeft(editor.loot, 365, -128);
+	anchorTopLeft(editor.choices, 35, -160);
+	editor.choices:SetWidth(150);
+	anchorTopLeft(editor.next, 205, -158);
+	editor.next:SetWidth(120);
+	anchorTopLeft(editor.endpoint, 370, -160);
+
+	-- Stage modification heading and Dialog section.
+	editor.attributes:ClearAllPoints();
+	editor.attributes:SetPoint("TOPLEFT", editor, "TOPLEFT", 28, -195);
+	editor.attributes:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -20, -195);
+	anchorTopLeft(editor.direction, 35, -235);
+	anchorTopLeft(editor.directionValue, 245, -235);
+	anchorTopLeft(editor.name, 35, -265);
+	editor.nameValue:ClearAllPoints();
+	editor.nameValue:SetPoint("TOPLEFT", editor, "TOPLEFT", 260, -263);
+	editor.nameValue:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -35, -263);
+
+	-- Decoration section.
+	anchorTopLeft(editor.background, 35, -320);
+	editor.backgroundValue:ClearAllPoints();
+	editor.backgroundValue:SetPoint("TOPLEFT", editor, "TOPLEFT", 260, -318);
+	editor.backgroundValue:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -35, -318);
+	anchorTopLeft(editor.image, 35, -350);
+	editor.imageValue:ClearAllPoints();
+	editor.imageValue:SetPoint("TOPLEFT", editor, "TOPLEFT", 260, -348);
+	editor.imageValue:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -125, -348);
+	editor.imageMore:ClearAllPoints();
+	editor.imageMore:SetPoint("TOPLEFT", editor, "TOPLEFT", 415, -349);
+	editor.imageMore:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -35, -349);
+	editor.imageMore:SetHeight(20);
+
+	-- Models section. The target buttons and ID fields get their own columns so
+	-- the checkbox labels cannot push the edit boxes outside the frame.
+	anchorTopLeft(editor.leftUnit, 35, -415);
+	editor.getLeftTarget:ClearAllPoints();
+	editor.getLeftTarget:SetPoint("TOPLEFT", editor, "TOPLEFT", 185, -414);
+	editor.getLeftTarget:SetWidth(72);
+	editor.leftUnitValue:ClearAllPoints();
+	editor.leftUnitValue:SetPoint("TOPLEFT", editor, "TOPLEFT", 275, -413);
+	editor.leftUnitValue:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -35, -413);
+	anchorTopLeft(editor.rightUnit, 35, -445);
+	editor.getRightTarget:ClearAllPoints();
+	editor.getRightTarget:SetPoint("TOPLEFT", editor, "TOPLEFT", 185, -444);
+	editor.getRightTarget:SetWidth(72);
+	editor.rightUnitValue:ClearAllPoints();
+	editor.rightUnitValue:SetPoint("TOPLEFT", editor, "TOPLEFT", 275, -443);
+	editor.rightUnitValue:SetPoint("TOPRIGHT", editor, "TOPRIGHT", -35, -443);
 
 	-- Text
 	editor.text.title:SetText(loc("DI_STEP_TEXT"));

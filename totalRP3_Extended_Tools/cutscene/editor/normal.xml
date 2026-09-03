@@ -29,7 +29,7 @@
 		<Size x="0" y="35" />
 
 		<Frames>
-			<Button parentKey="click" inherits="TRP3_InvisibleButton" name="$parentclick"/>
+			<Button parentKey="click" inherits="TRP3_InvisibleButton" setAllPoints="true" name="$parentclick"/>
 
 			<Frame name="$parentHighlight" parentKey="Highlight" inherits="TRP3X_GlowBorderTemplate" hidden="true">
 				<Anchors>
@@ -407,7 +407,7 @@
 					<Layer level="OVERLAY">
 						<FontString parentKey="attributes" inherits="GameFontNormal" justifyH="LEFT" name="$parentattributes">
 							<Anchors>
-								<Anchor point="TOP" x="0" y="-205"/>
+								<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentWorkflow" x="0" y="-30"/>
 								<Anchor point="LEFT" x="28" y="0"/>
 								<Anchor point="RIGHT" x="0" y="0"/>
 							</Anchors>

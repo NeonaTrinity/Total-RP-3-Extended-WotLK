@@ -1,3 +1,59 @@
+TRP3 Extended WotLK Alpha 33
+===============================
+
+Base: Total RP 3 Extended 1.0.7
+Target: WoW 3.3.5a / Interface 30300
+
+Alpha 33 is a focused Campaign -> Quest -> Quest Step authoring restoration pass.
+
+Campaign -> Quests
+-------------------
+- Restores the original 1.0.7 full-banner click target that was lost during the WotLK XML conversion.
+- Left-click a quest banner: Edit the quest.
+- Right-click a quest banner: Edit / Change quest ID / Delete.
+- Edit enters the original 1.0.7 quest editor.
+- Change quest ID reuses the original 1.0.7 quest-ID prompt, prefilled with the current ID.
+- Confirming the same ID is now a harmless no-op instead of showing a duplicate-ID error.
+- Delete is the original destructive 1.0.7 quest removal, renamed clearly in the UI and protected by an explicit confirmation popup describing that the quest and its child authoring data are permanently deleted.
+- No separate unlink/archive data model is introduced.
+
+Quest editor / Quest Step editor parity
+----------------------------------------
+The underlying quest.lua and step.lua in Alpha 31 were already the original 1.0.7 implementations. Alpha 33 preserves those data structures and restores the lost WotLK hit regions around their authoring rows.
+
+Quest editor still exposes the original 1.0.7 authoring surface:
+- Main: name, description, icon, auto reveal, progress, notes, objectives.
+- Steps.
+- Inner objects.
+- Workflows.
+- Event links.
+- Actions.
+
+Quest Step editor still exposes the original 1.0.7 authoring surface:
+- Main: text on step entry, text on step leave, auto reveal, final/end quest.
+- Inner objects.
+- Workflows.
+- Event links (On Step Start / On Step Leave).
+- Actions.
+
+Objective and quest-step banners
+--------------------------------
+- Restores the original 1.0.7 full-row click target in XML.
+- Reinforces the full-row hitbox at runtime for WotLK.
+- Existing original 1.0.7 objective/step operations are otherwise left intact in this build so quest-system behavior is restored before further UX redesign.
+
+Not changed in Alpha 33
+-----------------------
+- Inventory / item creation
+- Stashes or the current 20-unit provisional proximity range
+- Trading
+- Documents
+- Condition/Test logic
+- TRP-Anim-DB
+- Stock totalRP3 or totalRP3_Data
+- SavedVariables/data schema
+
+
 TRP3 Extended WotLK Alpha 32
 ===============================
 

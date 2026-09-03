@@ -64,6 +64,11 @@ local function text_init()
 	}
 	TRP3X_WOTLK.setupListBox(editor.type, outputs, nil, nil, 250, true);
 
+	-- WotLK dropdown geometry is visually offset to the right of the frame
+	-- anchor, so center-anchoring makes the visible selector look skewed.
+	editor.type:ClearAllPoints();
+	editor.type:SetPoint("TOPLEFT", editor, "TOPLEFT", 105, -45);
+
 	registerEffectEditor("text", {
 		title = loc("EFFECT_TEXT"),
 		icon = "inv_inscription_scrollofwisdom_01",

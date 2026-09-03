@@ -3,9 +3,9 @@
 ## Author: Telkostrasz & Ellypse
 ## Notes: Import/Export save bridge for Total RP 3 Extended
 ## URL: http://extended.totalrp3.info
-## Version: 1.0.7-wotlk-alpha29
+## Version: 1.0.7-wotlk-alpha30
 ## RequiredDeps: totalRP3, totalRP3_Extended, totalRP3_Extended_Tools
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariables: TRP3_Extended_ImpExport
-## X-WotLK-Port: Alpha 29
+## X-WotLK-Port: Alpha 30

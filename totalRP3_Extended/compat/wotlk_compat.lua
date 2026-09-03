@@ -1136,9 +1136,48 @@ function TRP3X_WOTLK.positionPopup(frame, anchor, mode)
     frame:ClearAllPoints();
 
     local parent = anchor and anchor.parent;
-    if mode == "inventory-icons" and _G.TRP3_InventoryPageMain and _G.TRP3_InventoryPageMain.Model then
+
+    -- Quick Item Editor icon selection needs special handling on Wrath. Earlier
+    -- builds keyed only off the Inventory page being visible and always placed
+    -- the stock 420x400 icon browser *below the character model*. When Quick
+    -- Create is open over that model, this can put the browser behind the
+    -- editor and can push its lower rows / close button into unusable space.
+    -- Keep Quick Create itself untouched and place the browser beside it when
+    -- possible; if neither side has enough room, overlay it above the editor at
+    -- a higher frame level so every icon and the X remain usable.
+    local quickEditor = _G.TRP3_ItemQuickEditor;
+    if mode == "inventory-icons" and quickEditor and quickEditor.IsShown and quickEditor:IsShown() then
+        parent = quickEditor;
+        local uiLeft = UIParent.GetLeft and UIParent:GetLeft() or 0;
+        local uiRight = UIParent.GetRight and UIParent:GetRight() or (UIParent:GetWidth() or 1024);
+        local parentLeft = parent.GetLeft and parent:GetLeft();
+        local parentRight = parent.GetRight and parent:GetRight();
+        local popupWidth = (frame.GetWidth and frame:GetWidth()) or 420;
+        local gap = 8;
+        local roomRight = parentRight and (uiRight - parentRight) or 0;
+        local roomLeft = parentLeft and (parentLeft - uiLeft) or 0;
+
+        if roomRight >= popupWidth + gap then
+            frame:SetPoint("LEFT", parent, "RIGHT", gap, 0);
+        elseif roomLeft >= popupWidth + gap then
+            frame:SetPoint("RIGHT", parent, "LEFT", -gap, 0);
+        else
+            frame:SetPoint("CENTER", parent, "CENTER", 0, 0);
+        end
+
+        if frame.SetFrameLevel then
+            local parentLevel = parent.GetFrameLevel and parent:GetFrameLevel() or 120;
+            frame:SetFrameLevel(parentLevel + 40);
+        end
+        return;
+    elseif mode == "inventory-icons" and _G.TRP3_InventoryPageMain and _G.TRP3_InventoryPageMain.Model then
+        -- Preserve Alpha 18's working inventory-page placement for icon pickers
+        -- that are not opened from Quick Create.
         parent = _G.TRP3_InventoryPageMain.Model;
         frame:SetPoint("TOP", parent, "BOTTOM", 0, -8);
+        if frame.SetFrameLevel and parent.GetFrameLevel then
+            frame:SetFrameLevel(parent:GetFrameLevel() + 20);
+        end
         return;
     end
     if not parent or not parent.GetCenter then

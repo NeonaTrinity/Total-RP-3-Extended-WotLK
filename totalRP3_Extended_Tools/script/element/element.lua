@@ -82,12 +82,18 @@ function delayEditor.init()
 		end
 	end, nil, 200, true);
 
+	-- Match the visible dropdown with the centered edit boxes on WotLK.
+	delayEditor.type:ClearAllPoints();
+	delayEditor.type:SetPoint("TOPLEFT", delayEditor, "TOPLEFT", 75, -65);
+
 	-- Interruption
 	local type = {
 		{TRP3_API.formats.dropDownElements:format(loc("WO_DELAY_INTERRUPT"), loc("WO_DELAY_INTERRUPT_1")), 1},
 		{TRP3_API.formats.dropDownElements:format(loc("WO_DELAY_INTERRUPT"), loc("WO_DELAY_INTERRUPT_2")), 2}
 	}
 	TRP3X_WOTLK.setupListBox(delayEditor.interrupt, type, nil, nil, 200, true);
+	delayEditor.interrupt:ClearAllPoints();
+	delayEditor.interrupt:SetPoint("TOPLEFT", delayEditor.duration, "BOTTOMLEFT", -20, -15);
 end
 
 --*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

@@ -213,18 +213,16 @@ function editor.init(ToolFrame)
 		line.click:SetAllPoints(line);
 		line.click:SetScript("OnClick", function(self, button)
 			if button == "RightButton" then
+				if IsControlKeyDown() then
+					removeCondition(self.actionIndex);
+					return;
+				end
 				local values = {
 					{loc("CM_EDIT"), "EDIT"},
 					{REMOVE, "DELETE"},
-					{loc("CA_ACTIONS_COND"), "CONDITION"},
 				};
-				if toolFrame.specificDraft.AC[self.actionIndex] and toolFrame.specificDraft.AC[self.actionIndex].CO then
-					tinsert(values, {loc("CA_ACTIONS_COND_REMOVE"), "REMOVE_CONDITION"});
-				end
 				TRP3X_WOTLK.displayDropDown(self, values, function(action)
 					if action == "EDIT" then openAction(self.actionIndex, self);
-					elseif action == "CONDITION" then openActionCondition(self.actionIndex);
-					elseif action == "REMOVE_CONDITION" then removeCondition(self.actionIndex);
 					elseif action == "DELETE" then removeAction(self.actionIndex); end
 				end, 0, true);
 			else
@@ -243,8 +241,8 @@ function editor.init(ToolFrame)
 		setTooltipForSameFrame(line.click, "RIGHT", 0, 5, loc("CA_ACTIONS"),
 			("|cffffff00%s: |cff00ff00%s\n"):format(loc("CM_CLICK"), loc("CM_EDIT"))
 					.. ("|cffffff00%s + %s: |cff00ff00%s\n"):format(loc("CM_CTRL"), loc("CM_CLICK"), loc("CA_ACTIONS_COND"))
-					.. ("|cffffff00%s + %s: |cff00ff00%s\n"):format(loc("CM_CTRL"), loc("CM_R_CLICK"), loc("CA_ACTIONS_COND_REMOVE"))
-					.. ("|cffffff00%s: |cff00ff00%s"):format(loc("CM_R_CLICK"), REMOVE));
+					.. ("|cffffff00%s: |cff00ff00%s / %s\n"):format(loc("CM_R_CLICK"), loc("CM_EDIT"), REMOVE)
+					.. ("|cffffff00%s + %s: |cff00ff00%s"):format(loc("CM_CTRL"), loc("CM_R_CLICK"), loc("CA_ACTIONS_COND_REMOVE")));
 	end
 	editor.list.decorate = decorateActionLine;
 	TRP3_API.ui.list.handleMouseWheel(editor.list, editor.list.slider);

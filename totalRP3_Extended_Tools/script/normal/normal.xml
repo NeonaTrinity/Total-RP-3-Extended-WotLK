@@ -374,7 +374,7 @@
 			</Frame>
 
 			<Frame parentKey="element" hidden="true" enableMouse="true" frameStrata="HIGH" name="$parentelement">
-				<Size x="640" y="440"/>
+				<Size x="860" y="520"/>
 				<Anchors>
 					<Anchor point="CENTER" x="55" y="0"/>
 				</Anchors>

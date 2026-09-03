@@ -270,6 +270,33 @@ local ELEMENT_LINE_ACTION_PASTE = "ELEMENT_LINE_ACTION_PASTE";
 local ELEMENT_LINE_ACTION_COND = "ELEMENT_LINE_ACTION_COND";
 local ELEMENT_LINE_ACTION_COND_NO = "ELEMENT_LINE_ACTION_COND_NO";
 
+local CONDITION_ICON_BY_PREFIX = {
+	unit_ = "INV_Misc_Spyglass_03",
+	char_ = "INV_Misc_Head_Human_01",
+	inv_ = "INV_Misc_Bag_08",
+	quest_ = "INV_Misc_Note_01",
+	var_ = "INV_Misc_Gear_01",
+	check_event_var = "INV_Misc_Gear_01",
+	random = "INV_Misc_Dice_01",
+	time_ = "INV_Misc_PocketWatch_01",
+};
+
+local function getConditionStepIcon(conditionData)
+	local expression = conditionData and conditionData[1];
+	if type(expression) == "table" and type(expression[1]) == "table" then
+		local operandID = expression[1].i or "";
+		if CONDITION_ICON_BY_PREFIX[operandID] then
+			return CONDITION_ICON_BY_PREFIX[operandID];
+		end
+		for prefix, icon in pairs(CONDITION_ICON_BY_PREFIX) do
+			if string.sub(operandID, 1, string.len(prefix)) == prefix then
+				return icon;
+			end
+		end
+	end
+	return ELEMENT_CONDITION_ICON;
+end
+
 local function onElementLineAction(action, self)
 	assert(self.scriptStepData, "No stepData in frame");
 
@@ -449,7 +476,7 @@ local function decorateElement(scriptStepFrame)
 		local title = decorateEffect(scriptStepFrame, scriptStep.e[1]);
 		scriptStepFrame.title:SetText(stepFormat:format(scriptStepFrame.scriptStepID, title));
 	elseif scriptStep.t == ELEMENT_TYPE.CONDITION then
-		TRP3_API.ui.frame.setupIconButton(scriptStepFrame, ELEMENT_CONDITION_ICON);
+		TRP3_API.ui.frame.setupIconButton(scriptStepFrame, getConditionStepIcon(scriptStep.b[1].cond));
 		scriptStepFrame.title:SetText(stepFormat:format(scriptStepFrame.scriptStepID, loc("WO_CONDITION")));
 		scriptStepFrame.description:SetText(workflowRowSummary(TRP3_ConditionEditor.getConditionPreview(scriptStep.b[1].cond), 54));
 		setTooltipForSameFrame(scriptStepFrame, "TOP", 0, 5, loc("WO_CONDITION"), loc("WO_CONDITION_TT") .. "\n\n|cffffff00" .. loc("WO_ELEMENT_EDIT"));

@@ -42,21 +42,33 @@ local ELEMENT_TYPE = TRP3_DB.elementTypes;
 -- In original 1.0.7 the child editor X implicitly unwound the parent modal.
 -- On the WotLK UI the child can hide while the mouse-blocking parent remains,
 -- so centralize the unwind instead of leaving an invisible locked layer behind.
-local function closeElementEditor()
-	if TRP3_ConditionEditor then
-		if TRP3_ConditionEditor.operand then
-			if TRP3_ConditionEditor.operand.left and TRP3_ConditionEditor.operand.left.args then TRP3_ConditionEditor.operand.left.args:Hide(); end
-			if TRP3_ConditionEditor.operand.right and TRP3_ConditionEditor.operand.right.args then TRP3_ConditionEditor.operand.right.args:Hide(); end
-			TRP3_ConditionEditor.operand:Hide();
-		end
-		if TRP3_ConditionEditor:IsShown() and TRP3_ConditionEditor:GetParent() == editor.element then
-			TRP3_ConditionEditor:Hide();
-		end
+local function hideNestedConditionEditors()
+	if TRP3_ConditionEditor and TRP3_ConditionEditor.operand then
+		local operand = TRP3_ConditionEditor.operand;
+		if operand.left and operand.left.args then operand.left.args:Hide(); end
+		if operand.right and operand.right.args then operand.right.args:Hide(); end
+		operand:Hide();
 	end
+end
 
+-- Close only the child editor. The dark element host deliberately remains
+-- visible with its own X so the user can clearly see that they are still
+-- inside the workflow-element modal layer.
+local function closeElementChild()
+	hideNestedConditionEditors();
 	if editor.element.current then
 		editor.element.current:Hide();
 	end
+	editor.element.current = nil;
+end
+
+-- Close the host itself and return control to the workflow list.
+local function closeElementEditor()
+	hideNestedConditionEditors();
+	if TRP3_ConditionEditor and TRP3_ConditionEditor:IsShown() and TRP3_ConditionEditor:GetParent() == editor.element then
+		TRP3_ConditionEditor:Hide();
+	end
+	if editor.element.current then editor.element.current:Hide(); end
 	editor.element.current = nil;
 	editor.element.scriptStep = nil;
 	editor.element:Hide();
@@ -81,7 +93,7 @@ local function setCurrentElementFrame(frame, title, noConfirm)
 	end
 
 	if frame.close then
-		frame.close:SetScript("OnClick", closeElementEditor);
+		frame.close:SetScript("OnClick", closeElementChild);
 	end
 
 	if frame.confirm then
@@ -386,8 +398,15 @@ local function workflowRowSummary(text, maxChars)
 end
 
 local function decorateEffect(scriptStepFrame, effectData)
+	effectData = effectData or EMPTY;
 	local effect = TRP3_API.script.getEffect(effectData.id) or EMPTY;
 	local effectInfo = TRP3_API.extended.tools.getEffectEditorInfo(effectData.id) or EMPTY;
+	local effectArgs = effectData.args;
+	if not effectArgs and effectInfo.getDefaultArgs then
+		effectArgs = effectInfo.getDefaultArgs();
+		effectData.args = effectArgs;
+	end
+	effectArgs = effectArgs or EMPTY;
 	local title = ("%s: |cffff9900%s"):format(loc("WO_EFFECT"), effectInfo.title or UNKNOWN);
 
 	TRP3_API.ui.frame.setupIconButton(scriptStepFrame, effectInfo.icon or ELEMENT_EFFECT_ICON);
@@ -417,7 +436,12 @@ local function decorateEffect(scriptStepFrame, effectData)
 	setTooltipForSameFrame(scriptStepFrame, "TOP", 0, 5, title, tooltip);
 
 	if effectInfo.effectFrameDecorator then
-		effectInfo.effectFrameDecorator(scriptStepFrame, effectData.args);
+		effectInfo.effectFrameDecorator(scriptStepFrame, effectArgs);
+		-- Decorators often replace the preview after the generic row formatter.
+		-- Re-apply a compact one-line summary so it cannot overlap the title/status.
+		if scriptStepFrame.description and scriptStepFrame.description.GetText then
+			scriptStepFrame.description:SetText(workflowRowSummary(scriptStepFrame.description:GetText(), 48));
+		end
 	end
 
 	if effectData.cond then
@@ -814,16 +838,16 @@ editor.init = function(ToolFrame, effectMenu)
 	editor.element.selector.delay:SetScript("OnClick", addDelayElement);
 	editor.element.selector.effect:SetScript("OnClick", displayEffectDropdown);
 
-	-- Keep a subtle modal backdrop so it is obvious the workflow is temporarily
-	-- in element-editing mode, but use the child editor's X as the only close
-	-- control. Every child X now unwinds the whole modal back to the workflow.
+	-- Alpha 22: restore the element host as an obvious modal container. It is
+	-- intentionally smaller than the workflow page and larger than its child
+	-- selector/editor. Child X closes the child; this outer X returns to workflow.
 	if editor.element.SetBackdropColor then
-		editor.element:SetBackdropColor(0.03, 0.03, 0.03, 0.72);
+		editor.element:SetBackdropColor(0.015, 0.015, 0.015, 0.96);
 	end
 	if editor.element.SetBackdropBorderColor then
-		editor.element:SetBackdropBorderColor(0.35, 0.35, 0.35, 0.90);
+		editor.element:SetBackdropBorderColor(0.55, 0.55, 0.55, 1.0);
 	end
-	editor.element.close:Hide();
+	editor.element.close:Show();
 	editor.element.close:SetScript("OnClick", closeElementEditor);
 	editor:SetScript("OnHide", closeElementEditor);
 

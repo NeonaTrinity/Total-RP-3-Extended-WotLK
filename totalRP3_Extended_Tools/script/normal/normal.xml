@@ -373,9 +373,13 @@
 
 			</Frame>
 
-			<Frame parentKey="element" hidden="true" setAllPoints="true" enableMouse="true" frameStrata="HIGH" name="$parentelement">
+			<Frame parentKey="element" hidden="true" enableMouse="true" frameStrata="HIGH" name="$parentelement">
+				<Size x="640" y="440"/>
+				<Anchors>
+					<Anchor point="CENTER" x="55" y="0"/>
+				</Anchors>
 
-				<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+				<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
 					<EdgeSize>
 						<AbsValue val="24" />
 					</EdgeSize>
@@ -388,8 +392,8 @@
 				</Backdrop>
 
 				<Frames>
-					<Button parentKey="close" inherits="UIPanelCloseButton" name="$parentClose" frameLevel="50">
-						<Anchors><Anchor point="TOPRIGHT" x="-4" y="-4"/></Anchors>
+					<Button parentKey="close" inherits="UIPanelCloseButton" name="$parentClose" frameLevel="100">
+						<Anchors><Anchor point="TOPRIGHT" x="-6" y="-6"/></Anchors>
 					</Button>
 					<Frame parentKey="selector" inherits="TRP3_EditorEffectTemplate" hidden="true" name="$parentselector">
 						<Size x="500" y="250"/>

@@ -155,12 +155,18 @@ local function item_add_init()
 		icon = "garrison_weaponupgrade",
 		description = loc("EFFECT_ITEM_ADD_TT"),
 		effectFrameDecorator = function(scriptStepFrame, args)
-			local class = getClass(tostring(args[1]));
+			args = args or {};
+			local itemID = args[1];
+			if not itemID or tostring(itemID) == "" then
+				scriptStepFrame.description:SetText("Configure the item to add");
+				return;
+			end
+			local class = getClass(tostring(itemID));
 			local link;
 			if class ~= TRP3_DB.missing then
 				link = TRP3_API.inventory.getItemLink(class);
 			end
-			scriptStepFrame.description:SetText(loc("EFFECT_ITEM_ADD_PREVIEW"):format("|cff00ff00" .. tostring(args[2]) .. "|cffffff00", "|cff00ff00" .. (link or tostring(args[1])) .. "|cffffff00"));
+			scriptStepFrame.description:SetText(loc("EFFECT_ITEM_ADD_PREVIEW"):format("|cff00ff00" .. tostring(args[2] or 1) .. "|cffffff00", "|cff00ff00" .. (link or tostring(itemID)) .. "|cffffff00"));
 		end,
 		getDefaultArgs = function()
 			return {"", 1, false, "parent"};

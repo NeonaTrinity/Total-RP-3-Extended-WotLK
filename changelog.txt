@@ -1,3 +1,21 @@
+Alpha 26
+
+Fix:
+- Condition Test Editor operand argument Confirm buttons no longer depend on
+  their physical GetParent() hierarchy. Left and Right Confirm buttons now pass
+  their logical operand list explicitly, with the Alpha 25 resolver retained as
+  a fallback. This targets the remaining Wrath/API-34 parentKey mismatch without
+  altering working inventory, stash, trade, document, map, or UnitPosition code.
+
+Protected/unchanged in this build:
+- RP inventory and containers
+- item trading/exchange
+- ground drops and stashes
+- stash 15-unit proximity behavior
+- UnitPosition compatibility implementation
+- documents and item-link behavior
+- stock totalRP3 and totalRP3_Data
+
 TRP3 Extended WotLK Alpha 25
 ================================
 

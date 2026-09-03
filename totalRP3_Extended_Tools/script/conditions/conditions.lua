@@ -279,19 +279,26 @@ local function resolveOperandListFromArgsFrame(argsFrame)
 	return nil;
 end
 
-local function onOperandConfirmClick(button)
-	local argsFrame = button:GetParent();
-	local list = resolveOperandListFromArgsFrame(argsFrame);
+local function onOperandConfirmClick(button, explicitList)
+	-- The Left and Right Confirm buttons are wired with their logical operand
+	-- list explicitly. This avoids depending on Wrath's physical frame parent
+	-- hierarchy, which does not reliably reproduce API-34 parentKey behavior.
+	local list = explicitList;
 	if not list then
-		return;
+		local argsFrame = button and button.GetParent and button:GetParent();
+		list = resolveOperandListFromArgsFrame(argsFrame);
 	end
+	if not list then return; end
 
 	-- Rebind defensively in case Wrath discarded one of the API-34 parentKey
 	-- aliases while the nested editor was being reparented.
 	bindOperandListChildren(list);
+	local argsFrame = list.args;
+	if not argsFrame then return; end
 
-	if argsFrame.currentEditor then
-		list.argsData = argsFrame.currentEditor.save();
+	local currentEditor = argsFrame.currentEditor;
+	if currentEditor and currentEditor.save then
+		list.argsData = currentEditor.save();
 		onOperandSelected(list.operandID, list);
 	end
 end
@@ -714,7 +721,9 @@ function editor.init()
 	operandEditor.left.preview:SetText(loc("OP_PREVIEW"));
 	operandEditor.left.edit:SetText(loc("OP_CONFIGURE"));
 	operandEditor.left.args.confirm:SetText(loc("EDITOR_CONFIRM"));
-	operandEditor.left.args.confirm:SetScript("OnClick", onOperandConfirmClick);
+	operandEditor.left.args.confirm:SetScript("OnClick", function(button)
+		onOperandConfirmClick(button, operandEditor.left);
+	end);
 	operandEditor.left.edit:SetScript("OnClick", onOperandEditClick);
 	operandEditor.left.preview:SetScript("OnClick", onPreviewClick);
 	setTooltipForSameFrame(operandEditor.left.preview, "TOP", 0, 0, loc("OP_PREVIEW"), loc("OP_CURRENT_TT"));
@@ -740,7 +749,9 @@ function editor.init()
 	operandEditor.right.preview:SetText(loc("OP_PREVIEW"));
 	operandEditor.right.edit:SetText(loc("OP_CONFIGURE"));
 	operandEditor.right.args.confirm:SetText(loc("EDITOR_CONFIRM"));
-	operandEditor.right.args.confirm:SetScript("OnClick", onOperandConfirmClick);
+	operandEditor.right.args.confirm:SetScript("OnClick", function(button)
+		onOperandConfirmClick(button, operandEditor.right);
+	end);
 	operandEditor.right.edit:SetScript("OnClick", onOperandEditClick);
 	operandEditor.right.preview:SetScript("OnClick", onPreviewClick);
 	setTooltipForSameFrame(operandEditor.right.preview, "TOP", 0, 0, loc("OP_PREVIEW"), loc("OP_CURRENT_TT"));

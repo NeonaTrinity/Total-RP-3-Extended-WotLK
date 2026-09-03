@@ -85,7 +85,7 @@ local function onCampaignButtonClick(button, mouseButton)
 	end
 end
 
-local BASE_BKG = (TRP3_API.ui.frame.getTiledBackground and TRP3_API.ui.frame.getTiledBackground(7)) or "Interface\\QuestionFrame\\question-background";
+local BASE_BKG = "Interface\\QuestionFrame\\question-background";
 local DEFAULT_CAMPAIGN_IMAGE = "GarrZoneAbility-Stables";
 
 
@@ -319,6 +319,11 @@ local function refreshQuestVignette(campaignID)
 	local image = (campaignClass.BA or EMPTY).IM or DEFAULT_CAMPAIGN_IMAGE;
 	TRP3_QuestLogPage.Quest.IconBorder:SetTexture("Interface\\ExtraButton\\" .. image);
 	TRP3_QuestLogPage.Quest.bTile:SetTexture(BASE_BKG, true, true);
+	TRP3_QuestLogPage.Quest.bTile:Show();
+	if TRP3_QuestLogPage.Quest.bNotTile then TRP3_QuestLogPage.Quest.bNotTile:Hide(); end
+	if TRP3_QuestLogPage.Quest.bTile.SetVertexColor then
+		TRP3_QuestLogPage.Quest.bTile:SetVertexColor(1, 1, 1, 1);
+	end
 	local description = (campaignClass.BA or EMPTY).DE or "";
 	description = TRP3_API.script.parseArgs(description, TRP3_API.quest.getCampaignVarStorage());
 	TRP3_QuestLogPage.Quest.Desc:SetText(description);

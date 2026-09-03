@@ -206,9 +206,14 @@ end
 -- Live 3.3.5 testing shows roughly 3 synthetic units per yard in the tested
 -- zones (15 units behaves closer to ~5 yards), so scale the threshold instead
 -- of changing UnitPosition and invalidating already-saved stash/drop positions.
-local ORIGINAL_SEARCH_DISTANCE_YARDS = 15;
-local WOTLK_POSITION_UNITS_PER_YARD = 3;
-local MAX_SEARCH_DISTANCE = ORIGINAL_SEARCH_DISTANCE_YARDS * WOTLK_POSITION_UNITS_PER_YARD;
+-- Original Extended 1.0.7 uses 15 world-yard units. Our WotLK UnitPosition
+-- compatibility layer uses normalized map coordinates, so keep the gameplay
+-- radius close to the original instead of applying the earlier 3x calibration.
+-- Orgrimmar live testing found 45 synthetic units much too generous; 20 is a
+-- deliberately small increase over the original 15 while preserving all saved
+-- stash/drop coordinates and the existing proximity checks.
+local ORIGINAL_SEARCH_DISTANCE = 15;
+local MAX_SEARCH_DISTANCE = 20;
 local searchForItems;
 
 local function isInRadius(maxDistance, posY, posX, myPosY, myPosX)

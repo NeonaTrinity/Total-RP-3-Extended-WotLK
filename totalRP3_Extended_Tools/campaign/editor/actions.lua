@@ -80,6 +80,15 @@ end
 
 local ACTION_LIST_WIDTH = 250;
 
+local function placeActionEditor()
+	editor.editor:SetParent(editor);
+	editor.editor:ClearAllPoints();
+	editor.editor:SetPoint("CENTER", editor, "CENTER", 0, 0);
+	editor.editor:SetFrameLevel(editor:GetFrameLevel() + 25);
+	if editor.editor.SetClampedToScreen then editor.editor:SetClampedToScreen(true); end
+	editor.editor:Show();
+end
+
 local function reloadWorkflowlist()
 	editor.editor.workflowIDs = {};
 	TRP3X_WOTLK.setupListBox(editor.editor.workflow,
@@ -89,7 +98,7 @@ end
 
 local function newAction()
 	editor.editor.index = nil;
-	TRP3_API.ui.frame.configureHoverFrame(editor.editor, editor.list.add, "TOP", 0, 5, false);
+	placeActionEditor();
 	reloadWorkflowlist();
 	TRP3_ScriptEditorNormal.safeLoadList(editor.editor.workflow, editor.editor.workflowIDs, "");
 	editor.editor.type:SetSelectedValue(TRP3_API.quest.ACTION_TYPES.LOOK);
@@ -102,7 +111,7 @@ local function openAction(actionIndex, frame)
 		local actionData = toolFrame.specificDraft.AC[actionIndex];
 		if actionData then
 			editor.editor.index = actionIndex;
-			TRP3_API.ui.frame.configureHoverFrame(editor.editor, frame, "TOP", 0, 0, false);
+			placeActionEditor();
 			reloadWorkflowlist();
 			TRP3_ScriptEditorNormal.safeLoadList(editor.editor.workflow, editor.editor.workflowIDs, actionData.SC or "");
 			editor.editor.type:SetSelectedValue(actionData.TY or TRP3_API.quest.ACTION_TYPES.LOOK);
@@ -130,6 +139,11 @@ local function onActionSaved()
 	editor.editor:Hide();
 end
 
+local function closeActionConditionHost()
+	if TRP3_ConditionEditor then TRP3_ConditionEditor:Hide(); end
+	if editor.overlay then editor.overlay:Hide(); end
+end
+
 local function openActionCondition(actionIndex)
 	local scriptData = toolFrame.specificDraft.AC[actionIndex].CO;
 	if not scriptData then
@@ -140,25 +154,24 @@ local function openActionCondition(actionIndex)
 
 	editor.overlay:Show();
 	editor.overlay:SetFrameLevel(editor:GetFrameLevel() + 20);
+	if editor.overlay.SetBackdropColor then editor.overlay:SetBackdropColor(0.015, 0.015, 0.015, 0.96); end
+	if editor.overlay.SetBackdropBorderColor then editor.overlay:SetBackdropBorderColor(0.55, 0.55, 0.55, 1.0); end
+	editor.overlay.close:SetScript("OnClick", closeActionConditionHost);
+
 	TRP3_ConditionEditor:SetParent(editor.overlay);
 	TRP3_ConditionEditor:ClearAllPoints();
 	TRP3_ConditionEditor:SetPoint("CENTER", 0, 0);
 	TRP3_ConditionEditor:SetFrameLevel(editor.overlay:GetFrameLevel() + 20);
 	TRP3_ConditionEditor:Show();
 	TRP3_ConditionEditor.load(scriptData);
-	TRP3_ConditionEditor:SetScript("OnHide", function()
-		TRP3_ConditionEditor:Hide();
-		editor.overlay:Hide()
-	end);
 	TRP3_ConditionEditor.confirm:SetScript("OnClick", function()
 		TRP3_ConditionEditor.save(scriptData);
 		toolFrame.specificDraft.AC[actionIndex].CO = scriptData;
 		TRP3_ConditionEditor:Hide();
 		refreshList();
 	end);
-	TRP3_ConditionEditor.close:SetScript("OnClick", function()
-		TRP3_ConditionEditor:Hide();
-	end);
+	-- Inner X closes only the child condition editor. Outer X exits the modal host.
+	TRP3_ConditionEditor.close:SetScript("OnClick", function() TRP3_ConditionEditor:Hide(); end);
 	TRP3_ConditionEditor.confirm:SetText(loc("EDITOR_CONFIRM"));
 	TRP3_ConditionEditor.title:SetText(loc("CA_ACTION_CONDI"));
 end
@@ -195,14 +208,13 @@ function editor.init(ToolFrame)
 		line.click:SetScript("OnClick", function(self, button)
 			if button == "RightButton" then
 				local values = {
-					{loc("CM_ACTIONS")},
 					{loc("CM_EDIT"), "EDIT"},
+					{REMOVE, "DELETE"},
 					{loc("CA_ACTIONS_COND"), "CONDITION"},
 				};
 				if toolFrame.specificDraft.AC[self.actionIndex] and toolFrame.specificDraft.AC[self.actionIndex].CO then
 					tinsert(values, {loc("CA_ACTIONS_COND_REMOVE"), "REMOVE_CONDITION"});
 				end
-				tinsert(values, {REMOVE, "DELETE"});
 				TRP3_API.ui.listbox.displayDropDown(self, values, function(action)
 					if action == "EDIT" then openAction(self.actionIndex, self);
 					elseif action == "CONDITION" then openActionCondition(self.actionIndex);
@@ -250,7 +262,7 @@ function editor.init(ToolFrame)
 		},
 		nil, nil, ACTION_LIST_WIDTH, true);
 
-	editor:SetScript("OnHide", function() editor.editor:Hide() end);
+	editor:SetScript("OnHide", function() editor.editor:Hide(); closeActionConditionHost(); end);
 
 	-- Tutorial
 	local TUTORIAL = {

@@ -30,7 +30,7 @@ local editor = TRP3_ScriptEditorNormal;
 local getTypeLocale = TRP3_API.extended.tools.getTypeLocale;
 local securityLevel = TRP3_API.security.SECURITY_LEVEL;
 
-local refreshElementList, toolFrame, unlockElements, onElementConfirm, openLastEffect;
+local refreshElementList, toolFrame, unlockElements, onElementConfirm, openLastEffect, onElementClick;
 
 --*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 -- New element
@@ -239,32 +239,19 @@ local function openEffectCondition(scriptStep)
 			{ { i = "unit_name", a = {"target"} }, "==", { v = "Elsa" } }
 		};
 	end
-	editor.overlay:Show();
-	editor.overlay:SetFrameLevel(editor:GetFrameLevel() + 20);
-	TRP3_ConditionEditor:SetParent(editor);
-	TRP3_ConditionEditor:ClearAllPoints();
-	TRP3_ConditionEditor:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
-	TRP3_ConditionEditor:SetParent(UIParent);
-	TRP3_ConditionEditor:SetFrameStrata("DIALOG");
-	if TRP3_ConditionEditor.SetClampedToScreen then TRP3_ConditionEditor:SetClampedToScreen(true); end
-	TRP3_ConditionEditor:SetFrameLevel(editor.list:GetFrameLevel() + 20);
-	TRP3_ConditionEditor:Show();
+
+	-- Use the same visible workflow-element host as every other nested editor.
+	-- The child X closes the condition panel; the host X returns to workflow.
+	setCurrentElementFrame(TRP3_ConditionEditor, loc("COND_EDITOR_EFFECT"));
 	TRP3_ConditionEditor.load(conditionData);
-	TRP3_ConditionEditor:SetScript("OnHide", function()
-		TRP3_ConditionEditor:Hide();
-		editor.overlay:Hide();
-		refreshElementList();
-	end);
+	TRP3_ConditionEditor.confirm:SetText(loc("EDITOR_CONFIRM"));
 	TRP3_ConditionEditor.confirm:SetScript("OnClick", function()
 		TRP3_ConditionEditor.save(conditionData);
 		scriptStep.cond = conditionData;
-		TRP3_ConditionEditor:Hide();
+		closeElementChild();
+		refreshElementList();
 	end);
-	TRP3_ConditionEditor.close:SetScript("OnClick", function()
-		TRP3_ConditionEditor:Hide();
-	end);
-	TRP3_ConditionEditor.confirm:SetText(loc("EDITOR_CONFIRM"));
-	TRP3_ConditionEditor.title:SetText(loc("COND_EDITOR_EFFECT"));
+	TRP3_ConditionEditor.close:SetScript("OnClick", closeElementChild);
 end
 
 local function removeEffectCondition(scriptStep)
@@ -277,6 +264,7 @@ editor.list.listElement = {};
 local ELEMENT_DELAY_ICON = "INV_Misc_PocketWatch_01";
 local ELEMENT_EFFECT_ICON = "INV_Misc_Gear_01";
 local ELEMENT_CONDITION_ICON = "Spell_Holy_SealOfWisdom";
+local ELEMENT_LINE_ACTION_EDIT = "ELEMENT_LINE_ACTION_EDIT";
 local ELEMENT_LINE_ACTION_COPY = "ELEMENT_LINE_ACTION_COPY";
 local ELEMENT_LINE_ACTION_PASTE = "ELEMENT_LINE_ACTION_PASTE";
 local ELEMENT_LINE_ACTION_COND = "ELEMENT_LINE_ACTION_COND";
@@ -287,7 +275,9 @@ local function onElementLineAction(action, self)
 
 	local scriptStep = self.scriptStepData;
 
-	if action == ELEMENT_LINE_ACTION_COPY then
+	if action == ELEMENT_LINE_ACTION_EDIT then
+		onElementClick(self, "LeftButton");
+	elseif action == ELEMENT_LINE_ACTION_COPY then
 		if not editor.elemCopy then
 			editor.elemCopy = {};
 		end
@@ -306,7 +296,7 @@ local function onElementLineAction(action, self)
 	end
 end
 
-local function onElementClick(self, button)
+onElementClick = function(self, button)
 	assert(self.scriptStepData, "No stepData in frame");
 
 	local scriptStep = self.scriptStepData;
@@ -344,7 +334,7 @@ local function onElementClick(self, button)
 		else
 			-- Show menu
 			local values = {};
-			tinsert(values, {self.title:GetText(), nil});
+			tinsert(values, {loc("CM_EDIT"), ELEMENT_LINE_ACTION_EDIT});
 			tinsert(values, {loc("WO_ELEMENT_COPY"), ELEMENT_LINE_ACTION_COPY});
 			if editor.elemCopy and editor.elemCopy.t == scriptStep.t then
 				tinsert(values, {loc("WO_ELEMENT_PASTE"), ELEMENT_LINE_ACTION_PASTE});
@@ -508,6 +498,7 @@ function refreshElementList()
 			scriptStepFrame = CreateFrame("Frame", "TRP3_EditorEffectFrame" .. stepID, editor.workflow.container.scroll.list, "TRP3_EditorEffectFrame");
 			scriptStepFrame.conditioned:SetText(loc("COND_CONDITIONED"));
 			if scriptStepFrame.title.SetWordWrap then scriptStepFrame.title:SetWordWrap(false); end
+			if scriptStepFrame.title and scriptStepFrame.title.SetWordWrap then scriptStepFrame.title:SetWordWrap(false); end
 			if scriptStepFrame.description.SetWordWrap then scriptStepFrame.description:SetWordWrap(false); end
 			scriptStepFrame:SetScript("OnMouseUp", onElementClick);
 			scriptStepFrame.remove:SetScript("OnClick", onRemoveClick);

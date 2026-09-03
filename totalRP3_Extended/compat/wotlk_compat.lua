@@ -6,7 +6,7 @@
 --------------------------------------------------------------------------------
 
 TRP3X_WOTLK = TRP3X_WOTLK or {};
-TRP3X_WOTLK.alpha = "22";
+TRP3X_WOTLK.alpha = "23";
 -- The stock WotLK TRP3 toolbar crashes when an addon registers its first button
 -- because toolbar.lua assumes GetPushedTexture() is non-nil. Keep the public
 -- base addon untouched; Alpha 16 keeps the Extended buttons on a small

@@ -31,7 +31,7 @@ local getTTAction = TRP3_API.extended.getTTAction;
 local editor = TRP3_ConditionEditor;
 local operandEditor = editor.operand.editor;
 
-local listCondition;
+local listCondition, closeOperandLayer;
 
 --*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 -- Operands structure
@@ -455,7 +455,7 @@ function editor.getConditionPreview(scriptData)
 	end
 end
 
-local function closeOperandLayer()
+closeOperandLayer = function()
 	if operandEditor.left and operandEditor.left.args then
 		if operandEditor.left.args.currentEditor then operandEditor.left.args.currentEditor:Hide(); end
 		operandEditor.left.args.currentEditor = nil;

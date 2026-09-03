@@ -215,7 +215,7 @@ function editor.init(ToolFrame)
 				if toolFrame.specificDraft.AC[self.actionIndex] and toolFrame.specificDraft.AC[self.actionIndex].CO then
 					tinsert(values, {loc("CA_ACTIONS_COND_REMOVE"), "REMOVE_CONDITION"});
 				end
-				TRP3_API.ui.listbox.displayDropDown(self, values, function(action)
+				TRP3X_WOTLK.displayDropDown(self, values, function(action)
 					if action == "EDIT" then openAction(self.actionIndex, self);
 					elseif action == "CONDITION" then openActionCondition(self.actionIndex);
 					elseif action == "REMOVE_CONDITION" then removeCondition(self.actionIndex);

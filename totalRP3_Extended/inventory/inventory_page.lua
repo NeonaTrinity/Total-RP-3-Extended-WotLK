@@ -223,7 +223,7 @@ local function onSlotClick(slot, button)
 				{loc("DB_CREATE_ITEM"), 2},
 				--			{loc("DB_IMPORT_ITEM"), 3}
 			};
-			TRP3_API.ui.listbox.displayDropDown(slot, menu, onSlotClickAction, 0, true);
+			TRP3X_WOTLK.displayDropDown(slot, menu, onSlotClickAction, 0, true);
 		elseif button == "LeftButton" and IsAltKeyDown() and slot.info then
 			if TRP3_API.extended.isObjectMine(slot.info.id) then
 				if (TRP3_API.extended.getClass(slot.info.id).MD or EMPTY).MO == TRP3_DB.modes.QUICK then
@@ -564,7 +564,7 @@ function TRP3_API.inventory.initInventoryPage()
 		}},
 	};
 	main.Equip.preset:SetScript("OnClick", function(self)
-		TRP3_API.ui.listbox.displayDropDown(self, presets, function(value)
+		TRP3X_WOTLK.displayDropDown(self, presets, function(value)
 			main.Equip.sequence:SetText(value or "");
 		end, 0, true);
 	end);

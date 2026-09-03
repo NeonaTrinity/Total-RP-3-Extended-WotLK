@@ -215,7 +215,7 @@ local function onLineClicked(line, button)
 		if editor.copy.TY == innerObject.TY then
 			tinsert(values, {loc("IN_INNER_PASTE_ACTION"), LINE_ACTION_PASTE});
 		end
-		TRP3_API.ui.listbox.displayDropDown(line, values, onLineAction, 0, true);
+		TRP3X_WOTLK.displayDropDown(line, values, onLineAction, 0, true);
 	end
 end
 
@@ -246,7 +246,7 @@ local function onAddClicked(self)
 	tinsert(values, {loc("TYPE_ITEM"), TRP3_DB.types.ITEM});
 	tinsert(values, {loc("TYPE_DOCUMENT"), TRP3_DB.types.DOCUMENT});
 	tinsert(values, {loc("TYPE_DIALOG"), TRP3_DB.types.DIALOG});
-	TRP3_API.ui.listbox.displayDropDown(self, values, addInnerObject, 0, true);
+	TRP3X_WOTLK.displayDropDown(self, values, addInnerObject, 0, true);
 end
 
 --*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

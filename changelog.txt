@@ -1,3 +1,14 @@
+TRP3 Extended WotLK Alpha 28
+===============================
+
+Base: Total RP 3 Extended 1.0.7
+Target: WoW 3.3.5a / Interface 30300
+
+Alpha 28 includes all Alpha 27 fixes and adds:
+- Native Wrath mount browser for the original Summon Mount effect editor.
+- Extended-only dropdown positioning; stock TRP3's dropdown API is no longer globally replaced.
+- PORT_STATUS_1.0.7.md feature-parity checklist against the original 1.0.7 baseline.
+
 TRP3 Extended WotLK Alpha 27
 ================================
 

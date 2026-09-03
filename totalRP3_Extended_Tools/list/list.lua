@@ -631,7 +631,7 @@ function onLineRightClick(lineWidget, data)
 		tinsert(values, {loc("DB_FULL_EXPORT"), ACTION_FLAG_FULL_EXPORT .. data.fullID, loc("DB_FULL_EXPORT_TT")});
 	end
 
-	TRP3_API.ui.listbox.displayDropDown(lineWidget, values, onLineActionSelected, 0, true);
+	TRP3X_WOTLK.displayDropDown(lineWidget, values, onLineActionSelected, 0, true);
 end
 
 --*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

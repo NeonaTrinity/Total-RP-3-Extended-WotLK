@@ -432,9 +432,11 @@ if not C_MountJournal.GetMountInfoByID then
 end
 if not C_MountJournal.GetMountInfoExtraByID then
     function C_MountJournal.GetMountInfoExtraByID(id)
-        local index, creatureID = findCompanion("MOUNT", id);
+        local index, creatureID, name, spellID = findCompanion("MOUNT", id);
         if not index then return nil; end
-        return creatureID, nil, nil, nil, nil, nil, nil, nil;
+        local description = "Wrath 3.3.5 mount";
+        if spellID then description = description .. " - spell " .. tostring(spellID); end
+        return creatureID, description, nil, nil, nil, nil, nil, nil;
     end
 end
 
@@ -973,7 +975,7 @@ function TRP3X_WOTLK.setupListBox(listBox, values, callback, defaultText, boxWid
     listBox.SetSelectedValue = function(self, value) setTextAndValue(value, true); end;
 
     button:SetScript("OnClick", function()
-        API.ui.listbox.displayDropDown(button, values, function(value)
+        TRP3X_WOTLK.displayDropDown(button, values, function(value)
             setTextAndValue(value, true);
         end, -10, addCancel);
     end);
@@ -1164,7 +1166,7 @@ function TRP3X_WOTLK.positionPopup(frame, anchor, mode)
 end
 
 function TRP3X_WOTLK.hideExtendedPopups()
-    for _, name in ipairs({"TRP3_IconBrowser", "TRP3_ColorBrowser", "TRP3_ImageBrowser", "TRP3_ObjectBrowser"}) do
+    for _, name in ipairs({"TRP3_IconBrowser", "TRP3_ColorBrowser", "TRP3_ImageBrowser", "TRP3_ObjectBrowser", "TRP3X_WotLKCompanionBrowser"}) do
         local frame = _G[name];
         if frame and frame.Hide then frame:Hide(); end
     end
@@ -1173,6 +1175,178 @@ function TRP3X_WOTLK.hideExtendedPopups()
             if entry and entry.frame and entry.frame.Hide then entry.frame:Hide(); end
         end
     end
+end
+
+-- ---------------------------------------------------------------------------
+-- Native Wrath companion browser for Extended 1.0.7's Summon Mount editor.
+-- Retail 1.0.7 opened TRP3's later companion-journal browser. 3.3.5 has no
+-- journal UI, but it does expose the player's learned mounts through the old
+-- GetNumCompanions/GetCompanionInfo API, which is sufficient to restore the
+-- original editor's selection workflow without changing the saved effect.
+-- ---------------------------------------------------------------------------
+local function trp3xCollectWrathMounts(filterText)
+    local result = {};
+    filterText = string.lower(tostring(filterText or ""));
+    if not GetNumCompanions or not GetCompanionInfo then return result; end
+    local count = GetNumCompanions("MOUNT") or 0;
+    for index = 1, count do
+        local creatureID, name, spellID, icon, active = GetCompanionInfo("MOUNT", index);
+        name = name or (GetSpellInfo and spellID and GetSpellInfo(spellID)) or ("Mount " .. index);
+        if filterText == "" or string.find(string.lower(name or ""), filterText, 1, true) then
+            table.insert(result, {
+                index = index,
+                id = spellID or creatureID or index,
+                creatureID = creatureID,
+                name = name,
+                spellID = spellID,
+                icon = icon or "Interface\\Icons\\INV_Misc_QuestionMark",
+                active = active and true or false,
+            });
+        end
+    end
+    table.sort(result, function(a, b) return string.lower(a.name or "") < string.lower(b.name or ""); end);
+    return result;
+end
+
+function TRP3X_WOTLK.showCompanionBrowser(anchor, onSelect, companionType)
+    -- Extended 1.0.7 only uses this popup for the Summon Mount effect. Keep the
+    -- type check explicit so a future pet/critter editor cannot silently use
+    -- the wrong collection.
+    if companionType and API.ui and API.ui.misc and API.ui.misc.TYPE_MOUNT and companionType ~= API.ui.misc.TYPE_MOUNT then
+        if API.popup and API.popup.showAlertPopup then
+            API.popup.showAlertPopup("This 3.3.5 companion picker currently supports mounts only.");
+        end
+        return nil;
+    end
+
+    local browser = _G.TRP3X_WotLKCompanionBrowser;
+    if not browser then
+        browser = CreateFrame("Frame", "TRP3X_WotLKCompanionBrowser", UIParent);
+        browser:SetWidth(390); browser:SetHeight(414);
+        browser:SetFrameStrata("DIALOG");
+        browser:SetClampedToScreen(true);
+        browser:EnableMouse(true);
+        if browser.SetBackdrop then
+            browser:SetBackdrop({
+                bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+                edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+                tile = true, tileSize = 16, edgeSize = 16,
+                insets = { left = 4, right = 4, top = 4, bottom = 4 },
+            });
+        end
+
+        browser.title = browser:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge");
+        browser.title:SetPoint("TOPLEFT", 18, -16);
+        browser.title:SetText("Select a Wrath mount");
+
+        browser.close = CreateFrame("Button", nil, browser, "UIPanelCloseButton");
+        browser.close:SetPoint("TOPRIGHT", -4, -4);
+        browser.close:SetScript("OnClick", function() browser:Hide(); end);
+
+        browser.filter = CreateFrame("EditBox", "TRP3X_WotLKCompanionFilter", browser, "InputBoxTemplate");
+        browser.filter:SetWidth(238); browser.filter:SetHeight(20);
+        browser.filter:SetPoint("TOPLEFT", 20, -47);
+        browser.filter:SetAutoFocus(false);
+        browser.filter:SetMaxLetters(60);
+
+        browser.filterLabel = browser:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall");
+        browser.filterLabel:SetPoint("BOTTOMLEFT", browser.filter, "TOPLEFT", 0, 2);
+        browser.filterLabel:SetText("Filter");
+
+        browser.pageText = browser:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall");
+        browser.pageText:SetPoint("TOPRIGHT", -22, -53);
+
+        browser.rows = {};
+        for i = 1, 10 do
+            local row = CreateFrame("Button", nil, browser);
+            row:SetWidth(350); row:SetHeight(29);
+            row:SetPoint("TOPLEFT", 20, -80 - ((i - 1) * 30));
+            row:RegisterForClicks("LeftButtonUp");
+            row.icon = row:CreateTexture(nil, "ARTWORK");
+            row.icon:SetWidth(24); row.icon:SetHeight(24);
+            row.icon:SetPoint("LEFT", 2, 0);
+            row.name = row:CreateFontString(nil, "ARTWORK", "GameFontNormal");
+            row.name:SetPoint("LEFT", row.icon, "RIGHT", 8, 0);
+            row.name:SetPoint("RIGHT", row, "RIGHT", -70, 0);
+            row.name:SetJustifyH("LEFT");
+            row.status = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall");
+            row.status:SetPoint("RIGHT", -4, 0);
+            local hl = row:CreateTexture(nil, "HIGHLIGHT");
+            hl:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight");
+            hl:SetBlendMode("ADD");
+            hl:SetAllPoints(row);
+            row:SetScript("OnClick", function(self)
+                local entry = self.entry;
+                if not entry then return; end
+                if browser.onSelect then
+                    local info = string.format("Wrath mount%s", entry.spellID and (" - spell " .. entry.spellID) or "");
+                    browser.onSelect({entry.name, entry.icon, info, "Mount", entry.spellID, entry.id});
+                end
+                browser:Hide();
+            end);
+            browser.rows[i] = row;
+        end
+
+        browser.prev = CreateFrame("Button", nil, browser, "UIPanelButtonTemplate");
+        browser.prev:SetWidth(90); browser.prev:SetHeight(22);
+        browser.prev:SetPoint("BOTTOMLEFT", 72, 17);
+        browser.prev:SetText("Previous");
+        browser.next = CreateFrame("Button", nil, browser, "UIPanelButtonTemplate");
+        browser.next:SetWidth(90); browser.next:SetHeight(22);
+        browser.next:SetPoint("BOTTOMRIGHT", -72, 17);
+        browser.next:SetText("Next");
+
+        browser.page = 1;
+        browser.refresh = function(self, resetPage)
+            if resetPage then self.page = 1; end
+            self.entries = trp3xCollectWrathMounts(self.filter:GetText());
+            local pageSize = #self.rows;
+            local pages = math.max(1, math.ceil(#self.entries / pageSize));
+            if self.page > pages then self.page = pages; end
+            if self.page < 1 then self.page = 1; end
+            local first = ((self.page - 1) * pageSize) + 1;
+            for i, row in ipairs(self.rows) do
+                local entry = self.entries[first + i - 1];
+                row.entry = entry;
+                if entry then
+                    row.icon:SetTexture(entry.icon);
+                    row.name:SetText(entry.name or "Unknown mount");
+                    row.status:SetText(entry.active and "Active" or "");
+                    row:Show();
+                else
+                    row:Hide();
+                end
+            end
+            self.pageText:SetText(string.format("%d/%d  (%d)", self.page, pages, #self.entries));
+            if self.page <= 1 then self.prev:Disable(); else self.prev:Enable(); end
+            if self.page >= pages then self.next:Disable(); else self.next:Enable(); end
+        end;
+
+        browser.prev:SetScript("OnClick", function()
+            browser.page = browser.page - 1; browser:refresh(false);
+        end);
+        browser.next:SetScript("OnClick", function()
+            browser.page = browser.page + 1; browser:refresh(false);
+        end);
+        browser.filter:SetScript("OnTextChanged", function() browser:refresh(true); end);
+        browser:EnableMouseWheel(true);
+        browser:SetScript("OnMouseWheel", function(self, delta)
+            if delta > 0 and self.page > 1 then self.page = self.page - 1; self:refresh(false);
+            elseif delta < 0 then
+                local pages = math.max(1, math.ceil(#(self.entries or {}) / #self.rows));
+                if self.page < pages then self.page = self.page + 1; self:refresh(false); end
+            end
+        end);
+    end
+
+    browser.onSelect = onSelect;
+    browser.filter:SetText("");
+    browser.page = 1;
+    browser:refresh(true);
+    TRP3X_WOTLK.positionPopup(browser, anchor);
+    if _G.TRP3_PopupsFrame then _G.TRP3_PopupsFrame:Hide(); end
+    browser:Show();
+    return browser;
 end
 
 -- ---------------------------------------------------------------------------
@@ -1208,10 +1382,7 @@ API.popup.showPopup = function(popupID, anchor, args)
     elseif popupID == API.popup.MUSICS and API.popup.showMusicBrowser then
         return API.popup.showMusicBrowser(args[1]);
     elseif popupID == API.popup.COMPANIONS then
-        -- There is no battle-pet journal browser in Wrath. Keep this action
-        -- non-fatal; companion effects can still be entered/tested manually.
-        if API.popup.showAlertPopup then API.popup.showAlertPopup("Companion browser is not available on the 3.3.5 client yet."); end
-        return;
+        return TRP3X_WOTLK.showCompanionBrowser(anchor, args[1], args[3]);
     end
     local entry = API.popup.POPUPS[popupID];
     if entry and entry.frame then
@@ -1246,67 +1417,80 @@ API.popup.hidePopups = function()
 end;
 
 
--- Alpha 19: direct API-11 context menus use a fixed horizontal offset and can
--- open off-screen. Re-anchor the first menu on a safe side of its source and
--- clamp all submenu levels.
-do
-    local oldDisplayDropDown = API.ui.listbox.displayDropDown;
-    if oldDisplayDropDown and not TRP3X_WOTLK.dropDownClampInstalled then
-        API.ui.listbox.displayDropDown = function(anchor, values, callback, space, addCancel)
-            oldDisplayDropDown(anchor, values, callback, 0, addCancel);
-            for i = 1, 4 do
-                local list = _G["DropDownList" .. i];
-                if list and list.SetClampedToScreen then list:SetClampedToScreen(true); end
-            end
-            local list = _G.DropDownList1;
-            if list and list:IsShown() and anchor and anchor.GetCenter then
-                local ax, ay = anchor:GetCenter();
-                local ux, uy = UIParent:GetCenter();
-                local h = UIParent:GetHeight() or 768;
-                ax, ay, ux = ax or ux, ay or uy, ux or 0;
-                list:ClearAllPoints();
-                if ay and ay > h * 0.55 then
-                    if ax and ax > ux then list:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -4);
-                    else list:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -4); end
-                else
-                    if ax and ax > ux then list:SetPoint("BOTTOMRIGHT", anchor, "TOPRIGHT", 0, 4);
-                    else list:SetPoint("BOTTOMLEFT", anchor, "TOPLEFT", 0, 4); end
-                end
-            end
-        end;
-        TRP3X_WOTLK.dropDownClampInstalled = true;
+-- Alpha 28: Extended-only dropdown positioning.
+-- Earlier alphas replaced TRP3_API.ui.listbox.displayDropDown globally. That
+-- fixed Extended's API-34 menus, but it also meant stock TRP3/third-party code
+-- could inherit Extended's zero-offset/re-anchoring behavior. Keep the public
+-- API-11 function intact and route only Extended-owned menus through this
+-- wrapper.
+TRP3X_WOTLK._baseDisplayDropDown = TRP3X_WOTLK._baseDisplayDropDown or API.ui.listbox.displayDropDown;
+
+local function trp3xClampExtendedDropDownLevel(list)
+    if not list then return; end
+    if list.SetClampedToScreen then list:SetClampedToScreen(true); end
+    local right = list.GetRight and list:GetRight();
+    local screenRight = UIParent.GetRight and UIParent:GetRight();
+    if right and screenRight and right > screenRight - 4 then
+        local point, relativeTo, relativePoint, x, y = list:GetPoint(1);
+        if relativeTo then
+            list:ClearAllPoints();
+            list:SetPoint("TOPRIGHT", relativeTo, "TOPLEFT", -4, y or 0);
+        end
     end
 end
 
--- Re-clamp every UIDropDownMenu level when it appears. Submenus are created
--- lazily after the initial displayDropDown() call, so handling only level 1
--- is not enough for the condition/workflow editors.
-do
-    if not TRP3X_WOTLK.dropDownOnShowClampInstalled then
-        for level = 1, 4 do
-            local list = _G["DropDownList" .. level];
-            if list then
-                if list.SetClampedToScreen then list:SetClampedToScreen(true); end
-                if list.HookScript then
-                    list:HookScript("OnShow", function(self)
-                        if self.SetClampedToScreen then self:SetClampedToScreen(true); end
-                        -- If a submenu is pushed past the right edge, mirror it
-                        -- to the left of its automatic anchor. Clamp handles the
-                        -- remaining top/bottom edge cases.
-                        local right = self.GetRight and self:GetRight();
-                        local screenRight = UIParent.GetRight and UIParent:GetRight();
-                        if right and screenRight and right > screenRight - 4 then
-                            local point, relativeTo, relativePoint, x, y = self:GetPoint(1);
-                            if relativeTo then
-                                self:ClearAllPoints();
-                                self:SetPoint("TOPRIGHT", relativeTo, "TOPLEFT", -4, y or 0);
-                            end
-                        end
-                    end);
-                end
+function TRP3X_WOTLK.displayDropDown(anchor, values, callback, space, addCancel)
+    local base = TRP3X_WOTLK._baseDisplayDropDown;
+    if not base then return; end
+
+    -- API-11 incorrectly treats Extended's width/spacing argument as a large X
+    -- offset. Zero is intentional here, but only for Extended callers.
+    base(anchor, values, callback, 0, addCancel);
+
+    local root = _G.DropDownList1;
+    if root then
+        root._trp3xExtendedRoot = true;
+        if root.SetClampedToScreen then root:SetClampedToScreen(true); end
+        if root:IsShown() and anchor and anchor.GetCenter then
+            local ax, ay = anchor:GetCenter();
+            local ux, uy = UIParent:GetCenter();
+            local h = UIParent:GetHeight() or 768;
+            ax, ay, ux = ax or ux, ay or uy, ux or 0;
+            root:ClearAllPoints();
+            if ay and ay > h * 0.55 then
+                if ax and ax > ux then root:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -4);
+                else root:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -4); end
+            else
+                if ax and ax > ux then root:SetPoint("BOTTOMRIGHT", anchor, "TOPRIGHT", 0, 4);
+                else root:SetPoint("BOTTOMLEFT", anchor, "TOPLEFT", 0, 4); end
             end
         end
-        TRP3X_WOTLK.dropDownOnShowClampInstalled = true;
+    end
+    for i = 1, 4 do
+        trp3xClampExtendedDropDownLevel(_G["DropDownList" .. i]);
+    end
+end
+
+-- UIDropDownMenu creates deeper levels lazily. Hooks are global frames, but
+-- they are inert unless level 1 was opened by TRP3X_WOTLK.displayDropDown().
+do
+    if not TRP3X_WOTLK.extendedDropDownHooksInstalled then
+        local root = _G.DropDownList1;
+        if root and root.HookScript then
+            root:HookScript("OnHide", function(self) self._trp3xExtendedRoot = nil; end);
+        end
+        for level = 2, 4 do
+            local list = _G["DropDownList" .. level];
+            if list and list.HookScript then
+                list:HookScript("OnShow", function(self)
+                    local owner = _G.DropDownList1;
+                    if owner and owner._trp3xExtendedRoot and owner:IsShown() then
+                        trp3xClampExtendedDropDownLevel(self);
+                    end
+                end);
+            end
+        end
+        TRP3X_WOTLK.extendedDropDownHooksInstalled = true;
     end
 end
 

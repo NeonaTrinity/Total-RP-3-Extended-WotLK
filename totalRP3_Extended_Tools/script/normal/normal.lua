@@ -186,7 +186,7 @@ local function displayEffectDropdown(self)
 		end
 	end
 
-	TRP3_API.ui.listbox.displayDropDown(self, values, addEffectElement, 0, true);
+	TRP3X_WOTLK.displayDropDown(self, values, addEffectElement, 0, true);
 end
 
 local function removeElement(elementID)
@@ -343,7 +343,7 @@ onElementClick = function(self, button)
 				tinsert(values, {loc("WO_ELEMENT_COND"), ELEMENT_LINE_ACTION_COND, loc("WO_ELEMENT_COND_TT")});
 				tinsert(values, {loc("WO_ELEMENT_COND_NO"), ELEMENT_LINE_ACTION_COND_NO});
 			end
-			TRP3_API.ui.listbox.displayDropDown(self, values, onElementLineAction, 0, true);
+			TRP3X_WOTLK.displayDropDown(self, values, onElementLineAction, 0, true);
 		end
 	end
 end
@@ -664,7 +664,7 @@ local function onWorkflowLineClick(lineClick, button)
 		if editor.copy then
 			tinsert(values, {loc("WO_PASTE"), WORKFLOW_LINE_ACTION_PASTE});
 		end
-		TRP3_API.ui.listbox.displayDropDown(line, values, onWorkflowLineAction, 0, true);
+		TRP3X_WOTLK.displayDropDown(line, values, onWorkflowLineAction, 0, true);
 	end
 end
 

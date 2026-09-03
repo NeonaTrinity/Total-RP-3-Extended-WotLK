@@ -446,7 +446,7 @@ local function onTestLineClick(line, button)
 			if #editor.scriptData > 1 then
 				tinsert(context, {loc("CM_REMOVE"), TEST_ACTION_REMOVE});
 			end
-			TRP3_API.ui.listbox.displayDropDown(line, context, onTestAction, 0, true);
+			TRP3X_WOTLK.displayDropDown(line, context, onTestAction, 0, true);
 		end
 	end
 end

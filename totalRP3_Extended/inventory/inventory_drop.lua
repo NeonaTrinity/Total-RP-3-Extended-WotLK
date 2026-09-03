@@ -426,7 +426,7 @@ local function initStashContainer()
 	end);
 	stashContainer.IconButton:SetScript("OnClick", function(self)
 		if stashContainer.stashIndex then
-			TRP3_API.ui.listbox.displayDropDown(self, {
+			TRP3X_WOTLK.displayDropDown(self, {
 				{ stashContainer.stashInfo.BA.NA or loc("DR_STASHES_NAME") },
 				{ loc("DR_STASHES_EDIT"), 1 },
 				{ loc("DR_STASHES_REMOVE"), 2 }
@@ -890,7 +890,7 @@ local function onToolbarButtonClick(button, mouseButton)
 	end
 	tinsert(dropdownItems, { "" });
 
-	TRP3_API.ui.listbox.displayDropDown(button, dropdownItems, onDropButtonAction, 0, true);
+	TRP3X_WOTLK.displayDropDown(button, dropdownItems, onDropButtonAction, 0, true);
 end
 
 --*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

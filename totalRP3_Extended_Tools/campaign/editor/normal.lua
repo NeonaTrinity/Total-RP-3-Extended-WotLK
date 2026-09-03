@@ -437,7 +437,7 @@ function TRP3_API.extended.tools.initCampaignEditorNormal(ToolFrame)
 			for index, portrait in pairs(CAMPAIGN_PORTRAITS) do
 				tinsert(values, {TRP3_API.formats.dropDownElements:format(loc("CA_IMAGE"), portrait), portrait, ("|TInterface\\ExtraButton\\%s:96:192|t"):format(portrait)});
 			end
-			TRP3_API.ui.listbox.displayDropDown(self, values, onCampaignPortraitSelected, 0, true);
+			TRP3X_WOTLK.displayDropDown(self, values, onCampaignPortraitSelected, 0, true);
 		end
 	end);
 	setTooltipAll(main.vignette, "RIGHT", 0, 5, loc("CA_ICON"),

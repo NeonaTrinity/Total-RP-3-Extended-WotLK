@@ -81,7 +81,7 @@ local function onCampaignButtonClick(button, mouseButton)
 		tinsert(values, {campaignName});
 		tinsert(values, {loc("QE_CAMPAIGN_RESET"), 1});
 		tinsert(values, {loc("QE_CAMPAIGN_START_BUTTON"), 2});
-		TRP3_API.ui.listbox.displayDropDown(button, values, onCampaignActionSelected, 0, true);
+		TRP3X_WOTLK.displayDropDown(button, values, onCampaignActionSelected, 0, true);
 	end
 end
 
@@ -601,7 +601,7 @@ local function init()
 						tinsert(values, {TRP3_API.formats.dropDownElements:format(loc("QE_ACTION"), TRP3_API.quest.getActionTypeLocale(TRP3_API.quest.ACTION_TYPES.LISTEN)), TRP3_API.quest.ACTION_TYPES.LISTEN});
 						tinsert(values, {TRP3_API.formats.dropDownElements:format(loc("QE_ACTION"), TRP3_API.quest.getActionTypeLocale(TRP3_API.quest.ACTION_TYPES.ACTION)), TRP3_API.quest.ACTION_TYPES.ACTION});
 						tinsert(values, {TRP3_API.formats.dropDownElements:format(loc("QE_ACTION"), TRP3_API.quest.getActionTypeLocale(TRP3_API.quest.ACTION_TYPES.TALK)), TRP3_API.quest.ACTION_TYPES.TALK});
-						TRP3_API.ui.listbox.displayDropDown(self, values, function(action)
+						TRP3X_WOTLK.displayDropDown(self, values, function(action)
 							if action == 0 then
 								TRP3_DialogFrameHistory:Show();
 							else
@@ -675,7 +675,7 @@ local function init()
 		tinsert(values, {TRP3_API.formats.dropDownElements:format(loc("QE_MACRO"), TRP3_API.quest.getActionTypeLocale(TRP3_API.quest.ACTION_TYPES.TALK)),
 			TRP3_API.quest.ACTION_TYPES.TALK, loc("QE_MACRO_TT")});
 
-		TRP3_API.ui.listbox.displayDropDown(button, values, function(action)
+		TRP3X_WOTLK.displayDropDown(button, values, function(action)
 			if GetNumMacros() <= 120 then
 				if action == TRP3_API.quest.ACTION_TYPES.LISTEN then
 					if GetMacroIndexByName("TRP3_Listen") == 0 then

@@ -195,7 +195,7 @@ local function onLineClick(lineWidgetClick)
 	tinsert(values, {lineWidget.text:GetText(), nil});
 	tinsert(values, {loc("SEC_LEVEL_DETAILS_THIS"), ACTION_FLAG_THIS .. lineWidget.effectGroup, loc("SEC_LEVEL_DETAILS_THIS_TT")});
 	tinsert(values, {loc("SEC_LEVEL_DETAILS_ALL"), ACTION_FLAG_ALL .. lineWidget.effectGroup, loc("SEC_LEVEL_DETAILS_ALL_TT")});
-	TRP3_API.ui.listbox.displayDropDown(lineWidget, values, onLineActionSelected, 0, true);
+	TRP3X_WOTLK.displayDropDown(lineWidget, values, onLineActionSelected, 0, true);
 end
 
 local function decorateLine(line, effectGroup)

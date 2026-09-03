@@ -1,3 +1,12 @@
+TRP3 Extended WotLK Alpha 25
+================================
+
+Alpha 25 fixes an additional Wrath parentKey mismatch in the Condition Test
+Editor. The argument sub-editor Confirm button can physically parent back to
+the overall Test Editor on 3.3.5, while original 1.0.7 expects it to parent to
+the Left/Right operand list. Alpha 25 resolves the logical operand explicitly
+instead of relying on GetParent().
+
 TRP3 Extended WotLK Alpha 24
 ================================
 

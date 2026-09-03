@@ -252,13 +252,47 @@ local function onTestPreview()
 	TRP3_API.script.generateAndRun(code, nil, env);
 end
 
+local function resolveOperandListFromArgsFrame(argsFrame)
+	-- API-34 parentKey exposed the Args frame through its logical Left/Right
+	-- operand list. On Wrath the XML frame's physical parent can instead be the
+	-- overall Test Editor, so GetParent() is not reliable here.
+	if operandEditor.left and operandEditor.left.args == argsFrame then
+		return operandEditor.left;
+	elseif operandEditor.right and operandEditor.right.args == argsFrame then
+		return operandEditor.right;
+	end
+
+	local physicalParent = argsFrame and argsFrame.GetParent and argsFrame:GetParent();
+	if physicalParent == operandEditor.left or physicalParent == operandEditor.right then
+		return physicalParent;
+	end
+
+	local argsName = argsFrame and argsFrame.GetName and argsFrame:GetName();
+	if argsName then
+		if operandEditor.left and operandEditor.left.GetName and argsName == operandEditor.left:GetName() .. "Args" then
+			return operandEditor.left;
+		elseif operandEditor.right and operandEditor.right.GetName and argsName == operandEditor.right:GetName() .. "Args" then
+			return operandEditor.right;
+		end
+	end
+
+	return nil;
+end
+
 local function onOperandConfirmClick(button)
 	local argsFrame = button:GetParent();
-	local list = argsFrame:GetParent();
+	local list = resolveOperandListFromArgsFrame(argsFrame);
+	if not list then
+		return;
+	end
+
+	-- Rebind defensively in case Wrath discarded one of the API-34 parentKey
+	-- aliases while the nested editor was being reparented.
+	bindOperandListChildren(list);
 
 	if argsFrame.currentEditor then
 		list.argsData = argsFrame.currentEditor.save();
-		onOperandSelected(list.operandID, list)
+		onOperandSelected(list.operandID, list);
 	end
 end
 

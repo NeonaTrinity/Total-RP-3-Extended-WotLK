@@ -1,5 +1,8 @@
-# Total-RP-3 Extended (WotLK 3.3.5a) - Alpha30 by J3 # 
+# Total-RP-3 Extended (WotLK 3.3.5a) # 
+
 This addon is currently in alpha and not for public distribution yet.
+version: Alpha30 
+by backport by J3 
 
 Features working:
 - RP3 inventory, TRP3 Item creation, TRP Item trading, and player RP stashes.

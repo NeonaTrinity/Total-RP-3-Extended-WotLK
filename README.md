@@ -29,6 +29,8 @@ This project is a fork of Total RP 3 Extended, https://github.com/Total-RP/Total
 
 Please contact the maintainer before including this fork in any launcher, automated repository, or commercial distribution.
 
+for use with TRP3 backport https://github.com/joyvanderveeken/Total-RP-3-WotLK, by joyvanderveeken
+
 A Note from the Maintainer
 This fork was shaped in quiet hours, for the sake of community and immersion. It is offered in trust, not for profit. Inclusion in third-party launchers, automated repositories, or commercial bundles requires explicit written permission from the maintainer.
 

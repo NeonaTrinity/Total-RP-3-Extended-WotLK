@@ -1,3 +1,20 @@
+TRP3 Extended WotLK Alpha 30
+===============================
+
+Base: Total RP 3 Extended 1.0.7
+Target: WoW 3.3.5a / Interface 30300
+
+Alpha 30 includes all Alpha 29 fixes plus the current live-test UI cleanup:
+- Campaign Actions: right-click on an added action banner now contains only Edit and Remove, as requested. Edit reloads the same Action Type + Linked Workflow values used at creation. Existing Ctrl-click condition shortcuts remain available without cluttering the context menu.
+- Workflow Condition host: the dark parent modal is enlarged to 860x520 so it properly surrounds the 790x430 Condition Editor and its parent X no longer lands on the child's top border.
+- Workflow Condition rows: the banner icon is selected from the first test's condition family (unit, character, inventory, quest, variable/event, random/time) with the historical generic condition icon as fallback.
+- Delay editor: WotLK dropdown geometry is explicitly re-anchored so Delay Type and Interruption align with the centered fields.
+- Display Text editor: the output-type dropdown is explicitly re-anchored so its visible bar is centered on WotLK.
+- Quick Item Editor icon browser: when opened from Character Inventory -> Create Item -> Select Icon, the 420x400 browser now prefers the right side of Quick Create, then the left side, and only overlays the editor when neither side fits. It is raised above Quick Create so the full icon grid and X remain visible/clickable. Other inventory icon-browser placement remains unchanged.
+
+Stash distance:
+- Orgrimmar currently feels close to the intended ~15-yard radius after Alpha 27's 45-unit calibration. This remains an Orgrimmar-only observation; no assumption is made yet about other maps.
+
 TRP3 Extended WotLK Alpha 29
 ===============================
 

@@ -700,16 +700,27 @@ function editor.init()
 	bindOperandListChildren(operandEditor.left);
 	bindOperandListChildren(operandEditor.right);
 
-	-- WotLK's UIDropDownMenuTemplate does not size/anchor these three controls
-	-- consistently until after initialization. Keep all Test Editor selectors
-	-- explicitly inside the editor instead of letting their template geometry
-	-- spill across the surrounding condition modal.
+	-- Alpha 29 / WotLK layout: UIDropDownMenuTemplate's visible chrome extends
+	-- to the right of the dropdown frame's logical anchor.  The original 1.0.7
+	-- TOP/TOPRIGHT layout therefore pushes the right operand outside the Test
+	-- Editor and makes the Configure/Preview buttons inherit misleading parent
+	-- geometry.  Anchor every visible control directly to the Test Editor.
+	-- This changes layout only; operand/comparator behavior remains original.
 	operandEditor.left:ClearAllPoints();
 	operandEditor.left:SetPoint("TOPLEFT", operandEditor, "TOPLEFT", 20, -70);
 	operandEditor.comparator:ClearAllPoints();
-	operandEditor.comparator:SetPoint("TOP", operandEditor, "TOP", 0, -70);
+	operandEditor.comparator:SetPoint("TOPLEFT", operandEditor, "TOPLEFT", 289, -70);
 	operandEditor.right:ClearAllPoints();
-	operandEditor.right:SetPoint("TOPRIGHT", operandEditor, "TOPRIGHT", -20, -70);
+	operandEditor.right:SetPoint("TOPLEFT", operandEditor, "TOPLEFT", 500, -70);
+
+	operandEditor.left.edit:ClearAllPoints();
+	operandEditor.left.edit:SetPoint("TOP", operandEditor, "TOPLEFT", 125, -110);
+	operandEditor.left.preview:ClearAllPoints();
+	operandEditor.left.preview:SetPoint("TOP", operandEditor, "TOPLEFT", 125, -135);
+	operandEditor.right.edit:ClearAllPoints();
+	operandEditor.right.edit:SetPoint("TOP", operandEditor, "TOPLEFT", 625, -110);
+	operandEditor.right.preview:ClearAllPoints();
+	operandEditor.right.preview:SetPoint("TOP", operandEditor, "TOPLEFT", 625, -135);
 
 	TRP3X_WOTLK.setupListBox(operandEditor.comparator, comparatorStructure, checkNumeric, nil, 155, true);
 

@@ -1,3 +1,17 @@
+TRP3 Extended WotLK Alpha 29
+===============================
+
+Base: Total RP 3 Extended 1.0.7
+Target: WoW 3.3.5a / Interface 30300
+
+Alpha 29 includes all Alpha 28 fixes and adds two live-test-driven UI fixes:
+- Condition Test Editor: all three dropdowns and both operand Configure/Preview button pairs are anchored directly inside the editor for the Wrath UIDropDownMenuTemplate geometry. No condition/test logic is changed.
+- Campaign Actions: restores original 1.0.7 full-banner click coverage. Right-click anywhere on an added action banner opens Edit / Remove / Edit condition / Remove condition (when applicable). Edit reloads the same Action Type and Linked Workflow choices used when the action was created.
+
+Stash distance:
+- Orgrimmar currently feels close to the intended ~15-yard radius after Alpha 27's 45-unit calibration. This remains an Orgrimmar-only observation; no assumption is made yet about other maps.
+
+
 TRP3 Extended WotLK Alpha 28
 ===============================
 

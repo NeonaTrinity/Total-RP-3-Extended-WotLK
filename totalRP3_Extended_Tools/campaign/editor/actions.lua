@@ -205,6 +205,12 @@ function editor.init(ToolFrame)
 	for i=1, 4 do
 		local line = editor.list["line" .. i];
 		tinsert(editor.list.widgetTab, line);
+		-- Original 1.0.7 makes the invisible click target cover the entire action
+		-- banner.  Alpha 28 had lost setAllPoints during the WotLK XML conversion,
+		-- leaving only the inherited 90x20 hit box clickable.  Reinforce the
+		-- original full-row behavior at runtime as well.
+		line.click:ClearAllPoints();
+		line.click:SetAllPoints(line);
 		line.click:SetScript("OnClick", function(self, button)
 			if button == "RightButton" then
 				local values = {

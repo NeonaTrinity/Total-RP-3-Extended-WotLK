@@ -78,7 +78,7 @@
 					<Anchors>
 						<Anchor point="LEFT" x="25" y="0" />
 						<Anchor point="RIGHT" x="-15" y="0" />
-						<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentlistheader" x="0" y="-290" />
+						<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentlistheader" x="0" y="-265" />
 					</Anchors>
 					<Color r="0.95" g="0.95" b="0.95" />
 				</FontString>
@@ -87,7 +87,7 @@
 					<Anchors>
 						<Anchor point="LEFT" x="15" y="0" />
 						<Anchor point="RIGHT" x="-15" y="0" />
-						<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentfullheader" x="0" y="-20" />
+						<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentfullheader" x="0" y="-12" />
 					</Anchors>
 					<Color r="0.95" g="0.95" b="0.95" />
 				</FontString>
@@ -190,7 +190,7 @@
 					</Button>
 
 					<Frame parentKey="editor" inherits="TRP3_EditorEffectTemplate" name="$parenteditor">
-						<Size x="700" y="250"/>
+						<Size x="750" y="300"/>
 						<Anchors>
 							<Anchor point="CENTER"/>
 						</Anchors>
@@ -214,19 +214,19 @@
 							<Button parentKey="preview" inherits="TRP3_CommonButton" name="$parentpreview">
 								<Size x="150" y="20"/>
 								<Anchors>
-									<Anchor point="BOTTOM" x="0" y="80" />
+									<Anchor point="BOTTOM" x="0" y="55" />
 								</Anchors>
 							</Button>
 
 							<Frame parentKey="comparator" inherits="UIDropDownMenuTemplate" name="$parentComparator">
 								<Anchors>
-									<Anchor point="TOP" x="0" y="-60"/>
+									<Anchor point="TOP" x="0" y="-75"/>
 								</Anchors>
 							</Frame>
 
 							<Frame parentKey="left" inherits="UIDropDownMenuTemplate" name="$parentLeft" enableMouse="true">
 								<Anchors>
-									<Anchor point="TOPLEFT" x="10" y="-60"/>
+									<Anchor point="TOPLEFT" x="25" y="-75"/>
 								</Anchors>
 								<Frames>
 									<Frame parentKey="args" inherits="TRP3_HoveredFrame" hidden="true" name="$parentArgs" enableMouse="true">
@@ -272,7 +272,7 @@
 
 							<Frame parentKey="right" inherits="UIDropDownMenuTemplate" name="$parentRight">
 								<Anchors>
-									<Anchor point="TOPRIGHT" x="-10" y="-60"/>
+									<Anchor point="TOPRIGHT" x="-25" y="-75"/>
 								</Anchors>
 								<Frames>
 									<Frame parentKey="args" inherits="TRP3_HoveredFrame" hidden="true" name="$parentArgs" enableMouse="true">

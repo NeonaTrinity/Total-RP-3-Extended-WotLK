@@ -1,3 +1,15 @@
+TRP3 Extended WotLK Alpha 24
+================================
+
+Base: Total RP 3 Extended 1.0.7. Public WotLK totalRP3 / totalRP3_Data remain untouched.
+
+Alpha 24 focus:
+- Confirms that Condition tests / Add test / Test editor / Preview test are original 1.0.7 terminology, not port placeholders.
+- Fixes the Extended-only WotLK listbox bridge so nested submenu leaf selections actually update and invoke their callbacks. This is especially important for Test Editor operands.
+- Enlarges/repositions the Test Editor and keeps Left Operand / Comparator / Right Operand dropdowns inside its bounds.
+- Narrows the operand dropdown widths slightly for 3.3.5.
+- Moves the complete logical expression preview (1, 1 AND 2, etc.) upward so it no longer sits behind the inherited Confirm button.
+
 TRP3 Extended WotLK Alpha 23
 ================================
 

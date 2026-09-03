@@ -6,7 +6,7 @@
 --------------------------------------------------------------------------------
 
 TRP3X_WOTLK = TRP3X_WOTLK or {};
-TRP3X_WOTLK.alpha = "23";
+TRP3X_WOTLK.alpha = "24";
 -- The stock WotLK TRP3 toolbar crashes when an addon registers its first button
 -- because toolbar.lua assumes GetPushedTexture() is non-nil. Keep the public
 -- base addon untouched; Alpha 16 keeps the Extended buttons on a small
@@ -933,16 +933,33 @@ function TRP3X_WOTLK.setupListBox(listBox, values, callback, defaultText, boxWid
     listBox.values = values;
     listBox.callback = callback;
 
-    local function setTextAndValue(value, fireCallback)
-        for _, tab in pairs(values) do
-            if tab[2] == value then
-                if textRegion then textRegion:SetText(tab[1] or ""); end
-                listBox.selectedValue = value;
-                if fireCallback and callback then callback(value, listBox); end
-                return true;
+    -- Extended 1.0.7 uses deeply nested listbox structures for operands,
+    -- effects, conditions and object selectors. API-11's setupListBox only
+    -- searches the first level when updating the visible label. Our earlier
+    -- compatibility wrapper accidentally made that worse by only firing the
+    -- callback when a first-level entry matched, making nested selections look
+    -- inert. Resolve labels recursively, but ALWAYS accept/callback a selected
+    -- leaf value.
+    local function findValueText(entries, wanted)
+        for _, tab in pairs(entries or EMPTY) do
+            if type(tab) == "table" then
+                local value = tab[2];
+                if type(value) == "table" then
+                    local nested = findValueText(value, wanted);
+                    if nested then return nested; end
+                elseif value == wanted then
+                    return tab[1] or tostring(wanted);
+                end
             end
         end
-        return false;
+    end
+
+    local function setTextAndValue(value, fireCallback)
+        local label = findValueText(values, value);
+        if textRegion and label then textRegion:SetText(label); end
+        listBox.selectedValue = value;
+        if fireCallback and callback then callback(value, listBox); end
+        return label ~= nil;
     end
 
     listBox.SetSelectedIndex = function(self, index)

@@ -659,12 +659,23 @@ function editor.init()
 	bindOperandListChildren(operandEditor.left);
 	bindOperandListChildren(operandEditor.right);
 
-	TRP3X_WOTLK.setupListBox(operandEditor.comparator, comparatorStructure, checkNumeric, nil, 175, true);
+	-- WotLK's UIDropDownMenuTemplate does not size/anchor these three controls
+	-- consistently until after initialization. Keep all Test Editor selectors
+	-- explicitly inside the editor instead of letting their template geometry
+	-- spill across the surrounding condition modal.
+	operandEditor.left:ClearAllPoints();
+	operandEditor.left:SetPoint("TOPLEFT", operandEditor, "TOPLEFT", 20, -70);
+	operandEditor.comparator:ClearAllPoints();
+	operandEditor.comparator:SetPoint("TOP", operandEditor, "TOP", 0, -70);
+	operandEditor.right:ClearAllPoints();
+	operandEditor.right:SetPoint("TOPRIGHT", operandEditor, "TOPRIGHT", -20, -70);
+
+	TRP3X_WOTLK.setupListBox(operandEditor.comparator, comparatorStructure, checkNumeric, nil, 155, true);
 
 	TRP3X_WOTLK.setupListBox(operandEditor.left, getEvaluatedOperands(leftListStructure), function(operandID, list)
 		list.argsData = nil;
 		onOperandSelected(operandID, list, true);
-	end, nil, 220, true);
+	end, nil, 200, true);
 	TRP3_API.ui.frame.configureHoverFrame(operandEditor.left.args, operandEditor.left, "TOP", 0, 5, true, operandEditor.left);
 	operandEditor.left.preview:SetText(loc("OP_PREVIEW"));
 	operandEditor.left.edit:SetText(loc("OP_CONFIGURE"));
@@ -690,7 +701,7 @@ function editor.init()
 	TRP3X_WOTLK.setupListBox(operandEditor.right, rightStructure, function(operandID, list)
 		list.argsData = nil;
 		onOperandSelected(operandID, list, true);
-	end, nil, 220, true);
+	end, nil, 200, true);
 	TRP3_API.ui.frame.configureHoverFrame(operandEditor.right.args, operandEditor.right, "TOP", 0, 5, true, operandEditor.right);
 	operandEditor.right.preview:SetText(loc("OP_PREVIEW"));
 	operandEditor.right.edit:SetText(loc("OP_CONFIGURE"));

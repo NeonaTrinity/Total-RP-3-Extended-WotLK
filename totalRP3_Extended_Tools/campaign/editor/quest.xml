@@ -29,7 +29,7 @@
 		<Size x="0" y="65" />
 
 		<Frames>
-			<Button parentKey="click" inherits="TRP3_InvisibleButton" name="$parentclick"/>
+			<Button parentKey="click" inherits="TRP3_InvisibleButton" setAllPoints="true" name="$parentclick"/>
 
 			<Frame name="$parentHighlight" parentKey="Highlight" inherits="TRP3X_GlowBorderTemplate" hidden="true">
 				<Anchors>

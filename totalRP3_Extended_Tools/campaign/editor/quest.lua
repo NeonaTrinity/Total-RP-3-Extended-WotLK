@@ -406,6 +406,8 @@ function TRP3_API.extended.tools.initQuest(ToolFrame)
 	for i=1, 4 do
 		local line = objectives.list["line" .. i];
 		tinsert(objectives.list.widgetTab, line);
+		line.click:ClearAllPoints();
+		line.click:SetAllPoints(line);
 		line.click:SetScript("OnClick", function(self, button)
 			if button == "RightButton" then
 				removeObjective(self.objectiveID);
@@ -477,6 +479,8 @@ function TRP3_API.extended.tools.initQuest(ToolFrame)
 	for i=1, 4 do
 		local line = steps.list["line" .. i];
 		tinsert(steps.list.widgetTab, line);
+		line.click:ClearAllPoints();
+		line.click:SetAllPoints(line);
 		line.click:SetScript("OnClick", function(self, button)
 			if button == "RightButton" then
 				removeQuestStep(self.stepID);

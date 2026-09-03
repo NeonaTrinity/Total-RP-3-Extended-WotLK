@@ -81,6 +81,7 @@ Cette personnalisation sera visible lorsque le joueur aura votre campagne comme 
 	["CA_QUEST_EXIST"] = "Il y a déjà une quête avec l'identifiant %s.",
 	["CA_QUEST_NO"] = "Pas de quête",
 	["CA_QUEST_REMOVE"] = "Supprimer cette quête ?",
+	["CA_QUEST_DELETE_CONFIRM"] = "Supprimer définitivement la quête |cffff9900%s|r ?\n\n|cffff4444Cette action supprime la quête ainsi que toutes ses étapes, objectifs, workflows, objets internes, liens d’événement et actions.",
 	["COM_NPC_ID"] = "voir l'ID du PNJ ciblé",
 	["COND_COMPLETE"] = "Expression logique complète",
 	["COND_EDITOR"] = "Éditeur de condition",

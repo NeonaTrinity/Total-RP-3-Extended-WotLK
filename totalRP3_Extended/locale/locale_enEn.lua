@@ -1108,6 +1108,7 @@ We should begin with some examples:
 	QE_QUESTS_HELP = "You can add quests to your campaign here. Please note that a quest is not automatically added to the player's quests log when he starts your campaign. You have to start the quests through workflows.\n|cffff9900Quests are sorted by ID in the quest log, not by name nor by reveal order.",
 	CA_QUEST_ADD = "Add quest",
 	CA_QUEST_REMOVE = "Remove this quest?",
+	CA_QUEST_DELETE_CONFIRM = "Delete quest |cffff9900%s|r?\n\n|cffff4444This permanently deletes the quest and all of its steps, objectives, workflows, inner objects, event links and actions.",
 	CA_QUEST_NO = "No quest",
 	CA_QUEST_EXIST = "There is already a quest with the ID %s.",
 	QE_NAME_NEW = "New quest",

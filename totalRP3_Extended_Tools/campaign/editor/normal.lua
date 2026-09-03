@@ -188,8 +188,8 @@ local function refreshQuestsList()
 	end
 end
 
-local function removeQuest(questID)
-	TRP3_API.popup.showConfirmPopup(loc("CA_QUEST_REMOVE"), function()
+local function deleteQuest(questID)
+	TRP3_API.popup.showConfirmPopup(loc("CA_QUEST_DELETE_CONFIRM"):format(questID), function()
 		if toolFrame.specificDraft.QE[questID] then
 			wipe(toolFrame.specificDraft.QE[questID]);
 			toolFrame.specificDraft.QE[questID] = nil;
@@ -205,7 +205,9 @@ end
 local function renameQuest(questID)
 	TRP3_API.popup.showTextInputPopup(loc("CA_QUEST_CREATE"), function(newID)
 		newID = TRP3_API.extended.checkID(newID);
-		if questID ~= newID and not toolFrame.specificDraft.QE[newID] then
+		if not newID or newID == "" then return; end
+		if questID == newID then return; end
+		if not toolFrame.specificDraft.QE[newID] then
 			toolFrame.specificDraft.QE[newID] = toolFrame.specificDraft.QE[questID];
 			toolFrame.specificDraft.QE[questID] = nil;
 			refreshQuestsList();
@@ -543,15 +545,28 @@ function TRP3_API.extended.tools.initCampaignEditorNormal(ToolFrame)
 	for i=1, 4 do
 		local line = quests.list["line" .. i];
 		tinsert(quests.list.widgetTab, line);
+		-- Original 1.0.7 made the whole banner clickable. WotLK lost the
+		-- template's setAllPoints during conversion, so reinforce it at runtime.
+		line.click:ClearAllPoints();
+		line.click:SetAllPoints(line);
 		line.click:SetScript("OnClick", function(self, button)
 			if button == "RightButton" then
-				removeQuest(self.questID);
+				local values = {
+					{loc("CM_EDIT"), "EDIT"},
+					{loc("CA_QE_ID"), "CHANGE_ID"},
+					{DELETE or "Delete", "DELETE"},
+				};
+				TRP3X_WOTLK.displayDropDown(self, values, function(action)
+					if action == "EDIT" then
+						openQuest(self.questID);
+					elseif action == "CHANGE_ID" then
+						renameQuest(self.questID);
+					elseif action == "DELETE" then
+						deleteQuest(self.questID);
+					end
+				end, 0, true);
 			else
-				if IsControlKeyDown() then
-					renameQuest(self.questID);
-				else
-					openQuest(self.questID);
-				end
+				openQuest(self.questID);
 			end
 		end);
 		line.click:SetScript("OnEnter", function(self)
@@ -565,8 +580,7 @@ function TRP3_API.extended.tools.initCampaignEditorNormal(ToolFrame)
 		line.click:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 		setTooltipForSameFrame(line.click, "RIGHT", 0, 5, loc("TYPE_QUEST"),
 			("|cffffff00%s: |cff00ff00%s\n"):format(loc("CM_CLICK"), loc("CM_EDIT"))
-			.. ("|cffffff00%s: |cff00ff00%s\n"):format(loc("CM_CTRL") .. " + " .. loc("CM_CLICK"), loc("CA_QE_ID"))
-			.. ("|cffffff00%s: |cff00ff00%s"):format(loc("CM_R_CLICK"), REMOVE));
+			.. ("|cffffff00%s: |cff00ff00%s / %s / %s"):format(loc("CM_R_CLICK"), loc("CM_EDIT"), loc("CA_QE_ID"), DELETE or "Delete"));
 	end
 	quests.list.decorate = decorateQuestLine;
 	TRP3_API.ui.list.handleMouseWheel(quests.list, quests.list.slider);

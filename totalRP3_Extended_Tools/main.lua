@@ -593,6 +593,10 @@ end
 
 local function onInit()
 	toolFrame = TRP3_ToolFrame;
+	-- Keep the entire authoring workspace above ordinary HUD/action-bar strata.
+	-- Modals/tutorial UI retain their explicit DIALOG/TOOLTIP strata above this.
+	if toolFrame.SetFrameStrata then toolFrame:SetFrameStrata("HIGH"); end
+	if toolFrame.SetToplevel then toolFrame:SetToplevel(true); end
 	toolFrame.warnings = {};
 
 	if not TRP3_Tools_Parameters then

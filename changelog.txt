@@ -1,3 +1,29 @@
+TRP3 Extended WotLK Alpha 35
+============================
+
+Base: Total RP 3 Extended 1.0.7
+Target: WoW 3.3.5a / Interface 30300
+UI reference: attached Total RP 3 WotLK base
+
+Alpha 35 focuses on WotLK-native Quest Log presentation and Database Manager layering.
+
+Quest Log
+---------
+- Campaign list now uses the same TRP3 WotLK map/profile artwork used by the base Profiles UI:
+  Interface\AddOns\totalRP3\Resources\UI\ui-frame-profiles-background
+- Campaign banner names are gold instead of near-black for readability.
+- Available Quests restores TRP3 WotLK tiled background #7 (Tileable-Parchment), the same parchment path that was working before Alpha 31.
+- Quest/current-step details now receive that same parchment explicitly.
+- Parchment is reapplied on page entry so navigation cannot leave the paper layer blank.
+
+Database Manager / Extended Tools
+---------------------------------
+- TRP3_ToolFrame is now toplevel and HIGH frame strata.
+- Ordinary Blizzard action bars/HUD should remain behind the Database Manager.
+- Existing DIALOG/TOOLTIP modal and tutorial layers remain above the Database Manager.
+
+
+
 RP3 Extended WotLK Alpha 34
 
 Alpha 34 focused UI cleanup

@@ -144,7 +144,7 @@
 					<Anchors>
 						<Anchor point="CENTER" relativeTo="$parentbanner" x="0" y="18"/>
 					</Anchors>
-					<Color r="0.08" g="0.05" b="0.02"/>
+					<Color r="0.95" g="0.75" b="0.0"/>
 				</FontString>
 
 				<FontString name="$parentRange" inherits="GameFontNormal" justifyH="CENTER" parentKey="range" text="[LVL]">
@@ -178,6 +178,18 @@
 	</Button>
 
 	<Frame name="TRP3_CampaignPageTemplate" virtual="true">
+		<Layers>
+			<Layer level="BACKGROUND">
+				<!-- WotLK-native TRP3 map/profile artwork, matching the base Profiles UI. -->
+				<Texture file="Interface\AddOns\totalRP3\Resources\UI\ui-frame-profiles-background">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="3" y="-3"/>
+						<Anchor point="BOTTOMRIGHT" x="-3" y="3"/>
+					</Anchors>
+					<TexCoords left="0" right="0.8" top="0.015" bottom="0.6"/>
+				</Texture>
+			</Layer>
+		</Layers>
 		<Frames>
 			<Button name="$parentSlot1" inherits="TRP3_CampaignButtonTemplate" parentKey="Slot1">
 				<Anchors>

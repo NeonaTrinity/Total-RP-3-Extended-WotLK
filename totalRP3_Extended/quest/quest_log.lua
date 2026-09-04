@@ -85,8 +85,23 @@ local function onCampaignButtonClick(button, mouseButton)
 	end
 end
 
-local BASE_BKG = "Interface\\QuestionFrame\\question-background";
+local getTiledBackground = TRP3_API.ui.frame.getTiledBackground;
+-- Alpha 35: use the parchment resource supplied by the WotLK TRP3 base.
+-- Background 7 is Interface\AddOns\totalRP3\resources\UI\Tileable-Parchment
+-- in this backport and was the known-good Quest Log paper before Alpha 31.
+local QUEST_PARCHMENT = (getTiledBackground and getTiledBackground(7))
+	or "Interface\\AddOns\\totalRP3\\resources\\UI\\Tileable-Parchment";
 local DEFAULT_CAMPAIGN_IMAGE = "GarrZoneAbility-Stables";
+
+local function applyQuestParchment(frame)
+	if not frame then return; end
+	if frame.bTile then
+		frame.bTile:SetTexture(QUEST_PARCHMENT, true, true);
+		frame.bTile:Show();
+		if frame.bTile.SetVertexColor then frame.bTile:SetVertexColor(1, 1, 1, 1); end
+	end
+	if frame.bNotTile then frame.bNotTile:Hide(); end
+end
 
 
 local function getCampaignProgression(campaignID)
@@ -318,12 +333,7 @@ local function refreshQuestVignette(campaignID)
 	decorateCampaignButton(TRP3_QuestLogPage.Quest, campaignID, true);
 	local image = (campaignClass.BA or EMPTY).IM or DEFAULT_CAMPAIGN_IMAGE;
 	TRP3_QuestLogPage.Quest.IconBorder:SetTexture("Interface\\ExtraButton\\" .. image);
-	TRP3_QuestLogPage.Quest.bTile:SetTexture(BASE_BKG, true, true);
-	TRP3_QuestLogPage.Quest.bTile:Show();
-	if TRP3_QuestLogPage.Quest.bNotTile then TRP3_QuestLogPage.Quest.bNotTile:Hide(); end
-	if TRP3_QuestLogPage.Quest.bTile.SetVertexColor then
-		TRP3_QuestLogPage.Quest.bTile:SetVertexColor(1, 1, 1, 1);
-	end
+	applyQuestParchment(TRP3_QuestLogPage.Quest);
 	local description = (campaignClass.BA or EMPTY).DE or "";
 	description = TRP3_API.script.parseArgs(description, TRP3_API.quest.getCampaignVarStorage());
 	TRP3_QuestLogPage.Quest.Desc:SetText(description);
@@ -336,6 +346,7 @@ local function swapCampaignActivation(button)
 end
 
 local function goToQuestPage(skipButton, campaignID, campaignName)
+	applyQuestParchment(TRP3_QuestLogPage.Quest);
 	if not skipButton then
 		NavBar_AddButton(TRP3_QuestLogPage.navBar, {id = campaignID, name = campaignName, OnClick = onQuestTabClick});
 	end
@@ -422,6 +433,7 @@ local function refreshStepContent(campaignID, questID, questInfo)
 end
 
 local function goToStepPage(skipButton, campaignID, questID, questName)
+	applyQuestParchment(TRP3_QuestLogPage.Step);
 	if not skipButton then
 		NavBar_AddButton(TRP3_QuestLogPage.navBar, {id = questID, name = questName});
 	end
@@ -630,6 +642,10 @@ local function init()
 	}
 	TRP3_QuestLogPage.navBar.home:SetWidth(110);
 	NavBar_Initialize(TRP3_QuestLogPage.navBar, "TRP3X_NavButtonTemplate", homeData, TRP3_QuestLogPage.navBar.home, TRP3_QuestLogPage.navBar.overflow);
+
+	-- WotLK Quest Log paper is explicit rather than inherited from later TRP3 templates.
+	applyQuestParchment(TRP3_QuestLogPage.Quest);
+	applyQuestParchment(TRP3_QuestLogPage.Step);
 
 	-- Campaign page init
 	TRP3_QuestLogPage.Campaign.widgetTab = {};

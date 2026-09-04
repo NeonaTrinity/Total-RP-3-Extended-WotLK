@@ -9,10 +9,10 @@ Features working:
 - Database manager tool
 - import/export item databases
 
-partially working working: 
-workflows, campaigns, quest.
+Partially working: 
+- workflows, campaigns, quest.
 
-not working yet:
+Not working yet:
   - advanced/expert scripting and features.
 
 for use with TRP3 backport https://github.com/joyvanderveeken/Total-RP-3-WotLK, by joyvanderveeken

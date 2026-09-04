@@ -6,10 +6,14 @@ version: Alpha35.
 
 Features working:
 - RP3 inventory, TRP3 Item creation, TRP Item trading, and player RP stashes.
-- Database manager tool has limited functionality
+- Database manager tool
+- import/export item databases
 
-not yet working: 
-- workflows, campaigns, quest.
+partially working working: 
+workflows, campaigns, quest.
+
+not working yet:
+  - advanced/expert scripting and features.
 
 for use with TRP3 backport https://github.com/joyvanderveeken/Total-RP-3-WotLK, by joyvanderveeken
 

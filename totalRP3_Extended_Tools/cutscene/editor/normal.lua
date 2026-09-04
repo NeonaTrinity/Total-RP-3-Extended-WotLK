@@ -217,15 +217,34 @@ end
 
 local function removeStep(index)
 	local data = toolFrame.specificDraft.DS;
+	if not data[index] then return; end
 
-	if #data > 1 and data[index] then
-		tremove(data, index);
-		if editor.stepID == index then
-			editStep(1);
-		end
+	-- A cutscene always needs at least one step. Keep the original 1.0.7
+	-- invariant instead of allowing an invalid empty DS table.
+	if #data <= 1 then
+		Utils.message.displayMessage(loc("QE_STEP_REMOVE") .. " |cffff9900A cutscene must contain at least one step.|r", 4);
+		return;
 	end
 
-	refreshStepList();
+	TRP3_API.popup.showConfirmPopup(loc("QE_STEP_REMOVE"), function()
+		-- Preserve edits to the currently selected step when removing a different
+		-- row. If the current row itself is removed, those edits disappear with it.
+		if editor.stepID and editor.stepID ~= index and data[editor.stepID] then
+			saveStep(editor.stepID);
+		end
+
+		if not data[index] then return; end
+		tremove(data, index);
+
+		local nextStepID = editor.stepID or 1;
+		if nextStepID == index then
+			nextStepID = math.min(index, #data);
+		elseif index < nextStepID then
+			nextStepID = nextStepID - 1;
+		end
+		nextStepID = math.max(1, math.min(nextStepID, #data));
+		editStep(nextStepID);
+	end);
 end
 
 local function onMoveUpClick(self)
@@ -458,12 +477,37 @@ function TRP3_API.extended.tools.initCutsceneEditorNormal(ToolFrame)
 		-- conversion just like the campaign/action/quest list fixes.
 		line.click:ClearAllPoints();
 		line.click:SetAllPoints(line);
+		line.click:SetFrameLevel(line:GetFrameLevel() + 5);
+		if line.Highlight and line.Highlight.EnableMouse then
+			line.Highlight:EnableMouse(false);
+		end
 		line.click:SetScript("OnClick", function(self, button)
+			-- Capture the row identity before saveStep() refreshes/redecorates the
+			-- reusable list rows. Reading self.stepID after that refresh is unreliable
+			-- on the 3.3.5 list implementation and made left-click editing look inert.
+			local targetStepID = self.stepID;
+			if not targetStepID then return; end
+
 			if button == "RightButton" then
-				removeStep(self.stepID);
+				local values = {
+					{loc("CM_EDIT"), "EDIT"},
+					{REMOVE, "REMOVE"},
+				};
+				TRP3X_WOTLK.displayDropDown(self, values, function(action)
+					if action == "EDIT" then
+						if editor.stepID and toolFrame.specificDraft.DS[editor.stepID] then
+							saveStep(editor.stepID);
+						end
+						editStep(targetStepID);
+					elseif action == "REMOVE" then
+						removeStep(targetStepID);
+					end
+				end, 0, true);
 			else
-				saveStep(editor.stepID);
-				editStep(self.stepID);
+				if editor.stepID and toolFrame.specificDraft.DS[editor.stepID] then
+					saveStep(editor.stepID);
+				end
+				editStep(targetStepID);
 			end
 		end);
 		line.click:SetScript("OnEnter", function(self)
@@ -478,7 +522,7 @@ function TRP3_API.extended.tools.initCutsceneEditorNormal(ToolFrame)
 		end);
 		line.click:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 		setTooltipForSameFrame(line.click, "RIGHT", 0, 5, loc("DI_STEP"),
-							   ("|cffffff00%s: |cff00ff00%s\n"):format(loc("CM_CLICK"), loc("CM_EDIT")) .. ("|cffffff00%s: |cff00ff00%s"):format(loc("CM_R_CLICK"), REMOVE));
+							   ("|cffffff00%s: |cff00ff00%s\n"):format(loc("CM_CLICK"), loc("CM_EDIT")) .. ("|cffffff00%s: |cff00ff00%s / %s"):format(loc("CM_R_CLICK"), loc("CM_EDIT"), REMOVE));
 
 		-- Up/down
 		line.movedown:SetFrameLevel(line.click:GetFrameLevel() + 10);

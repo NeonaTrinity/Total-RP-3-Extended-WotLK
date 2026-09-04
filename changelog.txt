@@ -1,3 +1,17 @@
+TRP3 Extended WotLK Alpha 37
+================================
+
+Alpha 37 is a focused Quest Objective + world-distance correction pass.
+
+Changes from Alpha 35:
+- Quest Objective editor is now a contained dark modal centered inside the Objectives panel.
+- Removes WotLK hovered-frame arrow/glow artifacts and underlying Quest Summary bleed-through.
+- Restores Extended 1.0.7's intended 15-yard stash/drop proximity on known 3.3.5 outdoor zone maps.
+- Converts the existing 0..10000 saved WotLK map-coordinate differences to yards using 3.3.5 zone dimensions.
+- Existing stash/drop coordinates are NOT migrated or rewritten.
+- Unknown/custom/instance maps conservatively fall back to the original 15 synthetic-unit behavior.
+- Includes all Alpha 35 and earlier fixes.
+
 TRP3 Extended WotLK Alpha 36
 ================================
 

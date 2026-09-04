@@ -23,6 +23,7 @@
 	
 	<!-- WotLK compatibility must load before Extended libraries and modules. -->
 	<Script file="compat\wotlk_compat.lua"/>
+	<Script file="compat\wotlk_map_data.lua"/>
 	<Include file="compat\wotlk_templates.xml"/>
 
 	<Include file="libs\libs.xml"/>

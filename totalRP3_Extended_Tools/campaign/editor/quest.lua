@@ -70,12 +70,34 @@ local function refreshObjectiveList()
 	end
 end
 
+local function placeObjectiveEditor()
+	-- Original 1.0.7 used TRP3_HoveredFrame beside the clicked objective.
+	-- API-11/WotLK's hovered-frame arrow geometry makes that placement overlap
+	-- the Quest Summary panel and exposes stray arrow/glow fragments. Keep the
+	-- original editor fields/data behavior, but present it as a contained modal
+	-- centered inside the Objectives panel.
+	local frame = objectives.editor;
+	frame:SetParent(objectives);
+	frame:ClearAllPoints();
+	frame:SetPoint("CENTER", objectives, "CENTER", 0, -5);
+	frame:SetFrameStrata("DIALOG");
+	frame:SetFrameLevel(objectives:GetFrameLevel() + 40);
+	if frame.SetClampedToScreen then frame:SetClampedToScreen(true); end
+	if frame.SetBackdropColor then frame:SetBackdropColor(0.015, 0.015, 0.015, 0.98); end
+	if frame.SetBackdropBorderColor then frame:SetBackdropBorderColor(0.65, 0.65, 0.65, 1); end
+	for _, suffix in pairs({"ArrowRIGHT", "ArrowGlowRIGHT", "ArrowUP", "ArrowGlowUP", "ArrowDOWN", "ArrowGlowDOWN", "ArrowLEFT", "ArrowGlowLEFT"}) do
+		local region = frame[suffix];
+		if region then region:Hide(); end
+	end
+	frame:Show();
+end
+
 local function newObjective()
 	objectives.editor.oldID = nil;
 	objectives.editor.id:SetText("");
 	objectives.editor.text:SetText("");
 	objectives.editor.auto:SetChecked(false);
-	TRP3_API.ui.frame.configureHoverFrame(objectives.editor, objectives.list.add, "TOP", 0, 5, false);
+	placeObjectiveEditor();
 end
 
 local function editObjective(objectivesID, frame)
@@ -88,7 +110,7 @@ local function editObjective(objectivesID, frame)
 			objectives.editor.id:SetText(objectivesID);
 			objectives.editor.text:SetText(objectivesData.TX or "");
 			objectives.editor.auto:SetChecked(objectivesData.AA);
-			TRP3_API.ui.frame.configureHoverFrame(objectives.editor, frame, "RIGHT", 0, 5, false);
+			placeObjectiveEditor();
 		else
 			newObjective();
 		end

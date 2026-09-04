@@ -200,25 +200,34 @@ end
 -- Loot
 --*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
--- Original Extended 1.0.7 uses UnitPosition world coordinates, where this
--- value is a 15-yard gameplay radius. The WotLK compatibility UnitPosition
--- intentionally preserves saved positions in a 0..10000 synthetic map space.
--- Live 3.3.5 testing shows roughly 3 synthetic units per yard in the tested
--- zones (15 units behaves closer to ~5 yards), so scale the threshold instead
--- of changing UnitPosition and invalidating already-saved stash/drop positions.
--- Original Extended 1.0.7 uses 15 world-yard units. Our WotLK UnitPosition
--- compatibility layer uses normalized map coordinates, so keep the gameplay
--- radius close to the original instead of applying the earlier 3x calibration.
--- Orgrimmar live testing found 45 synthetic units much too generous; 20 is a
--- deliberately small increase over the original 15 while preserving all saved
--- stash/drop coordinates and the existing proximity checks.
+-- Original Extended 1.0.7 uses UnitPosition world coordinates and a true
+-- 15-yard gameplay radius. The WotLK UnitPosition shim keeps existing saved
+-- positions in a 0..10000 normalized-map space. Alpha 36 converts coordinate
+-- differences back into yards using 3.3.5 zone dimensions, so large zones
+-- such as the Barrens no longer get a much larger physical interaction range.
+-- Existing stash/drop coordinates and SavedVariables remain unchanged.
 local ORIGINAL_SEARCH_DISTANCE = 15;
-local MAX_SEARCH_DISTANCE = 20;
+local FALLBACK_SYNTHETIC_DISTANCE = 15;
+local MAX_SEARCH_DISTANCE = ORIGINAL_SEARCH_DISTANCE;
 local searchForItems;
 
-local function isInRadius(maxDistance, posY, posX, myPosY, myPosX)
-	local distance = sqrt((posY - myPosY) ^ 2 + (posX - myPosX) ^ 2);
-	return distance <= maxDistance, distance;
+local function isInRadius(maxDistance, posY, posX, myPosY, myPosX, mapID)
+	local distance, isYards;
+	if TRP3X_WOTLK and TRP3X_WOTLK.getMapDistanceYards then
+		distance, isYards = TRP3X_WOTLK.getMapDistanceYards(mapID, posY, posX, myPosY, myPosX);
+	end
+	if distance == nil then
+		distance = sqrt((posY - myPosY) ^ 2 + (posX - myPosX) ^ 2);
+		isYards = false;
+	end
+	if isYards then
+		return distance <= maxDistance, distance;
+	end
+	-- Unknown/custom/instance maps keep original Alpha behavior conservatively
+	-- instead of applying a guessed world-yard scale. Half-radius callers retain
+	-- their original proportional behavior.
+	local fallbackDistance = FALLBACK_SYNTHETIC_DISTANCE * (maxDistance / ORIGINAL_SEARCH_DISTANCE);
+	return distance <= fallbackDistance, distance;
 end
 
 local function onLooted(itemData)
@@ -239,7 +248,7 @@ function searchForItems()
 	local searchResults = {};
 	for _, drop in pairs(dropData) do
 		if drop.mapID == mapID then
-			local isInRadius, distance = isInRadius(MAX_SEARCH_DISTANCE, posY, posX, drop.posY or 0, drop.posX or 0);
+			local isInRadius, distance = isInRadius(MAX_SEARCH_DISTANCE, posY, posX, drop.posY or 0, drop.posX or 0, mapID);
 			if isInRadius then
 				-- Show loot
 				tinsert(searchResults, drop);
@@ -262,7 +271,7 @@ function searchForItems()
 		loot.BA.NA = loc("DR_RESULTS"):format(total);
 		TRP3_API.inventory.presentLoot(loot, onLooted, nil, function()
 			local posY2, posX2 = UnitPosition("player");
-			local isInRad = isInRadius(MAX_SEARCH_DISTANCE / 2, posY, posX, posY2, posX2);
+			local isInRad = isInRadius(MAX_SEARCH_DISTANCE / 2, posY, posX, posY2, posX2, mapID);
 			if not isInRad then
 				Utils.message.displayMessage(loc("LOOT_DISTANCE"), 4);
 			end
@@ -480,7 +489,10 @@ local function initStashContainer()
 
 	createRefreshOnFrame(stashContainer, 0.15, function(self)
 		local posY, posX = UnitPosition("player");
-		if (not posY or not posX) or not self.stashInfo or not isInRadius(MAX_SEARCH_DISTANCE, posY, posX, self.stashInfo.posY, self.stashInfo.posX) then
+		local currentMapID = GetCurrentMapAreaID and GetCurrentMapAreaID();
+		if (not posY or not posX) or not self.stashInfo
+				or (self.stashInfo.mapID and currentMapID and self.stashInfo.mapID ~= currentMapID)
+				or not isInRadius(MAX_SEARCH_DISTANCE, posY, posX, self.stashInfo.posY, self.stashInfo.posX, self.stashInfo.mapID or currentMapID) then
 			self:Hide();
 			Utils.message.displayMessage(loc("DR_STASHES_TOO_FAR"), 4);
 		end
@@ -759,6 +771,7 @@ local function decorateStashSlot(slot, index)
 		local stashInfo = {
 			id = self.info[2],
 			owner = self.info[1],
+			mapID = GetCurrentMapAreaID and GetCurrentMapAreaID(),
 			posY = posY,
 			posX = posX,
 			BA = {
@@ -780,6 +793,7 @@ local function displayStashesResponse()
 		local posY, posX = UnitPosition("player");
 		stashFoundFrame.posX = posX;
 		stashFoundFrame.posY = posY;
+		stashFoundFrame.mapID = GetCurrentMapAreaID and GetCurrentMapAreaID();
 		stashFoundFrame.title:SetText(loc("DR_STASHES_FOUND"):format(#stashResponse));
 		stashFoundFrame:Show();
 		TRP3_API.ui.list.initList(stashFoundFrame, stashResponse, stashFoundFrame.slider);
@@ -814,7 +828,7 @@ local function receivedStashesRequest(sender, mapID, posY, posX, castID)
 	Utils.log.log(("%s is asking for stashes in zone %s."):format(sender, mapID));
 	for index, stash in pairs(stashesData) do
 		if stash.mapID == mapID then
-			local isInRadius, distance = isInRadius(MAX_SEARCH_DISTANCE, posY, posX, stash.posY or 0, stash.posX or 0);
+			local isInRadius, distance = isInRadius(MAX_SEARCH_DISTANCE, posY, posX, stash.posY or 0, stash.posX or 0, mapID);
 			if isInRadius then
 				-- P2P response
 				local total = 0;
@@ -877,7 +891,7 @@ local function onToolbarButtonClick(button, mouseButton)
 		local searchResults = {};
 		for stashIndex, stash in pairs(stashesData) do
 			if stash.mapID == mapID then
-				local isInRadius, distance = isInRadius(MAX_SEARCH_DISTANCE, posY, posX, stash.posY or 0, stash.posX or 0);
+				local isInRadius, distance = isInRadius(MAX_SEARCH_DISTANCE, posY, posX, stash.posY or 0, stash.posX or 0, mapID);
 				if isInRadius then
 					-- Show loot
 					tinsert(searchResults, stashIndex);
@@ -1022,7 +1036,10 @@ function dropFrame.init()
 	TRP3_API.ui.frame.setupMove(stashFoundFrame);
 	createRefreshOnFrame(stashFoundFrame, 0.15, function(self)
 		local posY, posX = UnitPosition("player");
-		if (not posY or not posX) or not isInRadius(MAX_SEARCH_DISTANCE / 2, posY, posX, self.posY, self.posX) then
+		local currentMapID = GetCurrentMapAreaID and GetCurrentMapAreaID();
+		if (not posY or not posX)
+				or (self.mapID and currentMapID and self.mapID ~= currentMapID)
+				or not isInRadius(MAX_SEARCH_DISTANCE / 2, posY, posX, self.posY, self.posX, self.mapID or currentMapID) then
 			self:Hide();
 			Utils.message.displayMessage(loc("DR_STASHES_TOO_FAR"), 4);
 		end

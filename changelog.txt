@@ -1,3 +1,19 @@
+TRP3 Extended WotLK Alpha 38
+================================
+
+Alpha 38 adds per-character persistence for the WotLK-safe Extended toolbar.
+
+Changes in Alpha 38:
+- The Extended compatibility toolbar now saves its anchor and offset when dragging stops.
+- Toolbar position is stored with SavedVariablesPerCharacter, so each character can keep its own placement.
+- The saved position is restored when the toolbar is created after login/reload.
+- Added /trp3 exreset to restore the Extended toolbar to its default top-center position for the current character.
+- /trp3 automatically lists exreset because the command is registered through the base WotLK TRP3 slash-command system.
+- The toolbar is clamped to the screen when moved/restored.
+
+All Alpha 37 fixes remain included, including cutscene-step interaction hardening, map-aware stash/drop distance, quest-objective editor cleanup, Quest Log visual integration, and prior WotLK compatibility work.
+
+
 TRP3 Extended WotLK Alpha 37
 ================================
 

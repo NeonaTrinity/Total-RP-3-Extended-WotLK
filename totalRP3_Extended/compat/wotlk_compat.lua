@@ -6,7 +6,7 @@
 --------------------------------------------------------------------------------
 
 TRP3X_WOTLK = TRP3X_WOTLK or {};
-TRP3X_WOTLK.alpha = "37";
+TRP3X_WOTLK.alpha = "38";
 -- The stock WotLK TRP3 toolbar crashes when an addon registers its first button
 -- because toolbar.lua assumes GetPushedTexture() is non-nil. Keep the public
 -- base addon untouched; Alpha 16 keeps the Extended buttons on a small
@@ -56,14 +56,50 @@ end
 TRP3X_WOTLK.actionButtons = TRP3X_WOTLK.actionButtons or {};
 TRP3X_WOTLK.actionButtonOrder = TRP3X_WOTLK.actionButtonOrder or {};
 
+local ACTION_BAR_DEFAULT_POINT = "TOP";
+local ACTION_BAR_DEFAULT_RELATIVE_POINT = "TOP";
+local ACTION_BAR_DEFAULT_X = 0;
+local ACTION_BAR_DEFAULT_Y = -72;
+
+local function getTRP3XCharacterSettings()
+    -- This table is declared as SavedVariablesPerCharacter in the Extended TOC.
+    -- Keep the action-bar data isolated so future per-character compatibility
+    -- settings can coexist without changing the saved-variable format.
+    TRP3X_WotLK_Character = TRP3X_WotLK_Character or {};
+    TRP3X_WotLK_Character.actionBar = TRP3X_WotLK_Character.actionBar or {};
+    return TRP3X_WotLK_Character;
+end
+
+local function restoreTRP3XActionBarPosition(bar)
+    local settings = getTRP3XCharacterSettings().actionBar;
+    bar:ClearAllPoints();
+    if settings.point and settings.relativePoint and type(settings.x) == "number" and type(settings.y) == "number" then
+        bar:SetPoint(settings.point, UIParent, settings.relativePoint, settings.x, settings.y);
+    else
+        bar:SetPoint(ACTION_BAR_DEFAULT_POINT, UIParent, ACTION_BAR_DEFAULT_RELATIVE_POINT, ACTION_BAR_DEFAULT_X, ACTION_BAR_DEFAULT_Y);
+    end
+end
+
+local function saveTRP3XActionBarPosition(bar)
+    if not bar or not bar.GetPoint then return; end
+    local point, _, relativePoint, x, y = bar:GetPoint(1);
+    if not point then return; end
+    local settings = getTRP3XCharacterSettings().actionBar;
+    settings.point = point;
+    settings.relativePoint = relativePoint or point;
+    settings.x = tonumber(x) or 0;
+    settings.y = tonumber(y) or 0;
+end
+
 local function ensureTRP3XActionBar()
     if TRP3X_WOTLK.actionBar then return TRP3X_WOTLK.actionBar; end
 
     local bar = CreateFrame("Frame", "TRP3X_WotLKActionBar", UIParent);
     bar:SetWidth(48);
     bar:SetHeight(40);
-    bar:SetPoint("TOP", UIParent, "TOP", 0, -72);
+    restoreTRP3XActionBarPosition(bar);
     bar:SetFrameStrata("HIGH");
+    if bar.SetClampedToScreen then bar:SetClampedToScreen(true); end
     bar:SetMovable(true);
     bar:EnableMouse(true);
     bar:RegisterForDrag("LeftButton");
@@ -79,10 +115,19 @@ local function ensureTRP3XActionBar()
     end);
     bar:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing();
+        saveTRP3XActionBarPosition(self);
     end);
 
     TRP3X_WOTLK.actionBar = bar;
     return bar;
+end
+
+function TRP3X_WOTLK.resetActionBarPosition()
+    local settings = getTRP3XCharacterSettings().actionBar;
+    wipe(settings);
+    local bar = ensureTRP3XActionBar();
+    bar:ClearAllPoints();
+    bar:SetPoint(ACTION_BAR_DEFAULT_POINT, UIParent, ACTION_BAR_DEFAULT_RELATIVE_POINT, ACTION_BAR_DEFAULT_X, ACTION_BAR_DEFAULT_Y);
 end
 
 local function refreshTRP3XActionBar()
@@ -184,6 +229,21 @@ function TRP3X_WOTLK.registerToolbarButton(structure)
     TRP3X_WOTLK.actionButtons[structure.id] = { structure = structure, button = button };
     table.insert(TRP3X_WOTLK.actionButtonOrder, structure.id);
     refreshTRP3XActionBar();
+end
+
+-- Register through the base WotLK TRP3 slash-command API so the command is
+-- automatically advertised whenever the player enters /trp3 with no command.
+if API.slash and API.slash.registerCommand then
+    API.slash.registerCommand({
+        id = "exreset",
+        helpLine = " - reset the Extended toolbar position for this character",
+        handler = function()
+            TRP3X_WOTLK.resetActionBarPosition();
+            if API.utils and API.utils.message and API.utils.message.displayMessage then
+                API.utils.message.displayMessage("Total RP 3 Extended toolbar position reset.");
+            end
+        end,
+    });
 end
 
 -- ---------------------------------------------------------------------------
